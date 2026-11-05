@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+
+<!--
+--------------------------------------------------------------------------
+-- Formulaire FLmsg ADRASEC - Message
+-- Message d'ambiance / Message de situation / Message encapsule /
+-- Procedure codifiee
+--
+-- Un seul fichier sert a la saisie (Edit Form) et a la lecture
+-- (View Form) : FLmsg y injecte les valeurs du message.
+-- A placer dans le dossier CUSTOM de FLmsg, chez l'emetteur ET chez
+-- le destinataire, sous ce nom exact : ADRASEC_Message.html
+-- Gabarit visuel inspire des modeles FNRASEC (F4IXH - MIT)
+--
+-- Contraintes de l'analyseur FLmsg (custom.cxx) a respecter en cas
+-- de modification :
+--  - tout le code JavaScript reste dans l'en-tete du document, car
+--    FLmsg passe en majuscules certains mots-cles du corps ;
+--  - chaque champ declare son type (text, number, radio) ;
+--  - l'attribut name precede toujours un eventuel attribut value ;
+--  - aucune case a cocher nommee : FLmsg ne les relit pas de facon
+--    fiable, elles alimentent des champs texte masques ;
+--  - tout champ nomme doit figurer dans l'envoi : un groupe radio
+--    sans choix possible (SIERRA, ECHO) est nomme en JavaScript et
+--    recopie dans un champ texte masque ;
+--  - jamais de champ desactive en saisie : FLmsg lirait une valeur
+--    indeterminee pour un champ absent de l'envoi ;
+--  - aucune valeur par defaut dans le code HTML (bouton radio coche,
+--    option preselectionnee) : FLmsg la conserverait en lecture a cote
+--    de la valeur recue. Les valeurs par defaut sont posees en
+--    JavaScript a la saisie ;
+--  - pas d'action, de methode ni d'encodage sur le formulaire, et pas
+--    de bouton d'envoi : FLmsg fournit les siens ;
+--  - aucun chevron dans les attributs des champs.
+--------------------------------------------------------------------------
+-->
+
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <META NAME="EDITABLE" CONTENT="true">
+  <META NAME="MENU_ITEM" CONTENT="Message ADRASEC">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Formulaire FLmsg ADRASEC">
+  <meta name="version" content="1.1.0">
+  <title>Message ADRASEC</title>
+
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 10px;
+      padding: 0px;
+      display: flex;
+      justify-content: left;
+      align-items: top;
+      background-color: #f0f2f5;
+      color: #333;
+    }
+
+    a { color: #007bff; text-decoration: none; }
+    a:hover { color: #0056b3; text-decoration: underline; }
+
+    hr {
+      border: none;
+      border-top: 1px dotted #333;
+    }
+
+    pre { margin: 0; }
+
+    input[type="radio"] {
+      transform: scale(1.3);
+      margin-right: 5px;
+      margin-top: 0;
+    }
+
+    .spacer { margin-top: 18px; margin-bottom: 18px; }
+
+    .masque { display: none !important; }
+
+    .container {
+      background-color: #ffffff;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 850px;
+    }
+
+    .main-content { padding: 0; min-height: 60vh; }
+
+    .grid-container { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+    .grid-container2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .grid-container3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+    @media print {
+      @page { margin: 0; }
+      body { padding: 10px; }
+      .no-print, .no-print * { display: none !important; }
+      .container {
+        background-color: transparent;
+        padding: 0;
+        border-radius: 0;
+        box-shadow: none;
+        width: 100%;
+        max-width: none;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .grid-container, .grid-container2, .grid-container3 { grid-template-columns: 1fr; }
+    }
+
+    /* header */
+    .header {
+      text-align: left;
+      margin-bottom: 1.3rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+    }
+
+    .header div.left { text-align: left; }
+    .header div.center { text-align: center; }
+
+    .header h1 {
+      font-size: 1.5em;
+      margin: 0.5em;
+      margin-bottom: 0.8rem;
+      text-align: center;
+    }
+
+    /* Logo vectoriel du bandeau */
+    .header svg.logo {
+      height: 110px;
+      width: auto;
+      display: inline-block;
+    }
+
+    @media (max-width: 600px) {
+      .header svg.logo { height: 72px; }
+    }
+
+    /* form */
+    .form-group { margin-bottom: 0.5rem; margin-top: 0.5rem; }
+
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+      color: #333;
+      font-size: 0.875rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 0.875rem;
+      font-family: 'Arial', sans-serif;
+    }
+
+    .form-group textarea { min-width: 100%; }
+    .form-group select { padding: 0.3rem; margin-bottom: 0; }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+
+    .form-group input.bg-yellow,
+    .form-group select.bg-yellow { background-color: lightyellow; }
+
+    .form-group input.bg-green,
+    .form-group textarea.bg-green { background-color: lightgreen; }
+
+    .radio-group {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding-top: 8px;
+    }
+
+    .radio-group input[type="checkbox"] {
+      transform: scale(1.3);
+      margin-right: 5px;
+      margin-top: 0;
+    }
+
+    .radio-group div { display: flex; align-items: center; gap: 3px; }
+    .form-group .radio-group input { width: auto; flex: 0 0 auto; }
+    /* Repli pour les moteurs sans support de 'gap' */
+    .radio-group > div { margin-right: 8px; }
+
+    .radio-group span { font-weight: bold; font-size: 0.875rem; }
+    .radio-group .red { color: red; }
+    .radio-group .orange { color: orange; }
+    .radio-group .green { color: green; }
+    .radio-group .blue { color: #007bff; }
+    .radio-group .purple { color: #6f42c1; }
+
+    .button { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 20px; }
+
+    .form-group button,
+    #ADRASECForm input[type="submit"] {
+      padding: 0.5rem 1rem;
+      background-color: #007bff;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-size: 0.875rem;
+    }
+
+    .form-group button:hover,
+    #ADRASECForm input[type="submit"]:hover { background-color: #0056b3; }
+
+    /* Bouton d'envoi ajoute par FLmsg en fin de formulaire */
+    #ADRASECForm input[type="submit"] {
+      display: block;
+      width: auto;
+      margin: 20px auto;
+    }
+
+    .form-group button.secondaire { background-color: #6c757d; }
+    .form-group button.secondaire:hover { background-color: #545b62; }
+    .form-group button.secondaire.demande { background-color: #d95e00; }
+    .form-group button.secondaire.demande:hover { background-color: #b34d00; }
+
+    /* Rubriques de la procedure codifiee */
+    .rubrique {
+      border: 1px solid #d7dee8;
+      border-radius: 6px;
+      margin-bottom: 0.7rem;
+      overflow: hidden;
+      background-color: #ffffff;
+    }
+
+    .rubrique-titre {
+      background-color: #eef3fb;
+      border-bottom: 1px solid #d7dee8;
+      border-left: 5px solid #007bff;
+      padding: 0.45rem 0.8rem;
+      color: #004085;
+      font-size: 0.9rem;
+    }
+
+    .rubrique-titre b { letter-spacing: 1.5px; }
+
+    .rubrique-titre span {
+      color: #6c757d;
+      font-size: 0.8rem;
+      margin-left: 8px;
+    }
+
+    .rubrique-corps { padding: 0.6rem 0.8rem 0.8rem 0.8rem; }
+
+    .rubrique-corps .form-group { margin-top: 0.2rem; margin-bottom: 0.2rem; }
+    .rubrique-corps .radio-group { padding-top: 0.2rem; }
+
+    .champ-court { max-width: 130px; }
+
+    .unite {
+      font-size: 0.875rem;
+      color: #555;
+      white-space: nowrap;
+      padding-bottom: 0.55rem;
+    }
+
+    .ligne-champ { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+
+    .section-title {
+      font-weight: bold;
+      font-size: 0.95rem;
+      color: #004085;
+      border-left: 4px solid #007bff;
+      padding-left: 8px;
+      margin-top: 1.2rem;
+      margin-bottom: 0.3rem;
+    }
+
+    /* Lecture */
+    .type-banner {
+      display: inline-block;
+      font-weight: bold;
+      font-size: 1rem;
+      letter-spacing: 1px;
+      color: #fff;
+      background-color: #007bff;
+      border-radius: 4px;
+      padding: 6px 14px;
+      margin-bottom: 0.5rem;
+    }
+
+    .reference {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      color: #555;
+      word-wrap: break-word;
+    }
+
+    .code-block {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      color: #333;
+      line-height: 1.4;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      width: 100%;
+      box-sizing: border-box;
+      display: block;
+    }
+
+    .prio-IMMEDIAT { color: red; font-weight: bold; }
+    .prio-URGENT { color: orange; font-weight: bold; }
+    .prio-ROUTINE { color: green; font-weight: bold; }
+
+    .avis-ar {
+      background-color: #cfe2ff;
+      border: 1px solid #b6d4fe;
+      color: #004085;
+      padding: 0.75rem 1rem;
+      margin: 0 20px 1rem 20px;
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+
+    /* footer */
+    .footer {
+      width: 100%;
+      bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-text {
+      text-align: center;
+      font-style: italic;
+      margin-top: 0.5rem;
+      color: #777;
+      font-size: 0.75rem;
+    }
+
+    .adrasec-text {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 0.5rem;
+      color: #777;
+      font-size: 0.75rem;
+    }
+
+    /* help */
+    .help-panel {
+      width: 30%;
+      min-width: 300px;
+      padding: 0;
+      margin: 0;
+      background-color: #f4f4f9;
+      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.3s;
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1000;
+    }
+
+    .help-container { padding: 20px; }
+    .help-panel.active { transform: translateX(0); }
+    div.help-content { color: #333; margin-top: 30px; }
+    .help-panel li { margin-bottom: 10px; }
+
+    .help-panel .close-btn {
+      background: #ddd;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      padding: 4px 10px;
+      float: left;
+    }
+
+    .warning {
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .info {
+      background-color: #cfe2ff;
+      border: 1px solid #b6d4fe;
+      color: #004085;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+  </style>
+
+  <script type="text/javascript">
+    //==================================================================
+    // Constantes et utilitaires
+    //==================================================================
+
+    // Cles du stockage local du navigateur (origine du serveur FLmsg)
+    var CLE_INDICATIF = "adrasec.indicatif";
+    var CLE_NUMERO = "adrasec.dernierNumero";
+    var CLE_AR = "adrasec.arEnAttente";
+
+    // Gammes GOLF : valeur transmise / case a cocher associee
+    var GAMMES = [
+      ["HF", "cbGolfHF"],
+      ["VHF", "cbGolfVHF"],
+      ["UHF", "cbGolfUHF"],
+      ["QO100", "cbGolfQO100"]
+    ];
+
+    // Champs saisis au clavier, convertis en ASCII a l'envoi
+    var CHAMPS_TEXTE = ["vNumero", "vDate", "vHeure", "vOrigine", "vTo",
+                        "vAutOrig", "vAutDest", "vSujet", "vMessage",
+                        "vJeSuis", "vJeVois", "vJeFais", "vJeDemande",
+                        "vPapaCommune", "vPapaGPS", "vCommentaire"];
+
+    function el(id) { return document.getElementById(id); }
+
+    function val(id) {
+      var e = el(id);
+      return e ? e.value : "";
+    }
+
+    function vider(ids) {
+      for (var i = 0; i < ids.length; i++) el(ids[i]).value = "";
+    }
+
+    function stockageDisponible() {
+      try {
+        var t = "adrasec.test";
+        window.localStorage.setItem(t, t);
+        window.localStorage.removeItem(t);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function lireStockage(cle) {
+      try { return window.localStorage.getItem(cle); } catch (e) { return null; }
+    }
+
+    function ecrireStockage(cle, valeur) {
+      try { window.localStorage.setItem(cle, valeur); } catch (e) { }
+    }
+
+    // Agrandissement automatique des zones de saisie
+    function AutoGrowTextArea(textField) {
+      if (textField.clientHeight < textField.scrollHeight) {
+        textField.style.height = textField.scrollHeight + "px";
+        if (textField.clientHeight < textField.scrollHeight) {
+          textField.style.height = (textField.scrollHeight * 2 - textField.clientHeight) + "px";
+        }
+      }
+    }
+
+    function agrandirZones() {
+      var zones = document.getElementsByTagName("textarea");
+      for (var i = 0; i < zones.length; i++) AutoGrowTextArea(zones[i]);
+    }
+
+    // Conversion en ASCII 7 bits : les modes numeriques de fldigi
+    // (MT63, Olivia, Contestia...) ne transmettent pas toujours les
+    // caracteres accentues.
+    function versAscii(texte) {
+      var t = String(texte);
+      t = t.replace(/[\u2018\u2019\u201A\u2032\u00B4]/g, "'");
+      t = t.replace(/[\u201C\u201D\u201E\u2033\u00AB\u00BB]/g, '"');
+      t = t.replace(/[\u2010-\u2015\u2212]/g, "-");
+      t = t.replace(/\u2026/g, "...");
+      t = t.replace(/[\u00A0\u2007\u202F]/g, " ");
+      t = t.replace(/\u20AC/g, "EUR");
+      t = t.replace(/\u00B0/g, " ");
+      t = t.replace(/\u0152/g, "OE").replace(/\u0153/g, "oe");
+      t = t.replace(/\u00C6/g, "AE").replace(/\u00E6/g, "ae");
+      t = t.replace(/\u00DF/g, "ss");
+      if (t.normalize) t = t.normalize("NFD").replace(/[\u0300-\u036F]/g, "");
+      return t.replace(/[^\t\n\r\x20-\x7E]/g, "?");
+    }
+
+    // Date et heure locales, uniquement si les champs sont vides
+    function remplirDateHeure() {
+      var d = new Date();
+      if (!val("vDate")) {
+        el("vDate").value =
+          d.getFullYear() + '-' +
+          ('0' + (d.getMonth() + 1)).slice(-2) + '-' +
+          ('0' + d.getDate()).slice(-2);
+      }
+      if (!val("vHeure")) {
+        el("vHeure").value =
+          ('0' + d.getHours()).slice(-2) + ':' +
+          ('0' + d.getMinutes()).slice(-2) + ' (LOC)';
+      }
+    }
+
+    // Numero propose : compteur local (equivalent du {SeqNum} Winlink)
+    function proposerNumero() {
+      if (val("vNumero") || !stockageDisponible()) return;
+      var dernier = parseInt(lireStockage(CLE_NUMERO), 10);
+      el("vNumero").value = isNaN(dernier) ? "1" : String(dernier + 1);
+    }
+
+    function memoriserNumero(numero) {
+      if (!/^[0-9]+$/.test(numero)) return;
+      var dernier = parseInt(lireStockage(CLE_NUMERO), 10);
+      var n = parseInt(numero, 10);
+      if (isNaN(dernier) || n > dernier) ecrireStockage(CLE_NUMERO, String(n));
+    }
+
+    //==================================================================
+    // Gestion du type de message
+    //==================================================================
+    function getRadioValue(nom) {
+      var radios = document.getElementsByName(nom);
+      for (var i = 0; i < radios.length; i++) {
+        if (radios[i].checked) return radios[i].value;
+      }
+      return "";
+    }
+
+    function setRadioRequired(nom, obligatoire) {
+      var radios = document.getElementsByName(nom);
+      for (var i = 0; i < radios.length; i++) {
+        radios[i].required = obligatoire;
+      }
+    }
+
+    // Groupes radio SIERRA / ECHO : le nom est pose ici et non dans le
+    // code HTML, pour que FLmsg ne les voie pas. Un groupe sans choix est
+    // absent de l'envoi, ce que FLmsg lit dans une memoire non initialisee.
+    // Le choix est recopie dans un champ texte masque (vSierra, vEcho).
+    var GROUPES = ["vSierra", "vEcho"];
+
+    function nomGroupe(champ) { return "grp_" + champ; }
+
+    function nommerGroupes() {
+      var radios = document.querySelectorAll("input[data-groupe]");
+      for (var i = 0; i < radios.length; i++) {
+        radios[i].name = nomGroupe(radios[i].getAttribute("data-groupe"));
+      }
+    }
+
+    function restaurerGroupes() {
+      for (var g = 0; g < GROUPES.length; g++) {
+        var radios = document.getElementsByName(nomGroupe(GROUPES[g]));
+        for (var i = 0; i < radios.length; i++) {
+          radios[i].checked = (radios[i].value === val(GROUPES[g]));
+        }
+      }
+    }
+
+    function getTypeMessage() {
+      return getRadioValue("vType");
+    }
+
+    function libelleType(type) {
+      if (type === "AMBIANCE") return "MESSAGE D'AMBIANCE";
+      if (type === "SITUATION") return "MESSAGE DE SITUATION";
+      if (type === "CODIFIEE") return "PROCEDURE CODIFIEE";
+      return "MESSAGE ENCAPSULE";
+    }
+
+    // Equivalent du sujet Winlink : [PRIORITE][TYPE/N] sujet
+    function referenceMessage() {
+      var type = getTypeMessage() || "AMBIANCE";
+      var sujet = (type === "ENCAPSULE")
+        ? val("vSujet")
+        : libelleType(type) + " du " + val("vDate") + " " + val("vHeure");
+      return "[" + getRadioValue("Priority") + "][" + type + "/" + val("vNumero") + "] " + sujet;
+    }
+
+    function setFormType() {
+      var type = getTypeMessage();
+      var encapsule = (type === "ENCAPSULE");
+      var codifiee = (type === "CODIFIEE");
+      var soie = (!encapsule && !codifiee);
+
+      el("blocAutorites").style.display = encapsule ? "" : "none";
+      el("blocEncapsule").style.display = encapsule ? "" : "none";
+      el("blocSOIE").style.display = soie ? "" : "none";
+      el("blocCodifiee").style.display = codifiee ? "" : "none";
+
+      // Champs obligatoires selon le type
+      el("vAutOrig").required = encapsule;
+      el("vAutDest").required = encapsule;
+      el("vSujet").required = encapsule;
+      el("vMessage").required = encapsule;
+
+      el("vJeSuis").required = soie;
+      el("vJeVois").required = soie;
+      el("vJeFais").required = soie;
+      el("vJeDemande").required = false;
+
+      el("vPapaCommune").required = codifiee;
+      el("vPapaGPS").required = codifiee;
+      el("vAlpha").required = codifiee;
+      el("vDelta").required = codifiee;
+      setRadioRequired(nomGroupe("vSierra"), codifiee);
+      setRadioRequired(nomGroupe("vEcho"), codifiee);
+
+      // Valeurs par defaut des listes (vides hors procedure codifiee)
+      if (codifiee) {
+        if (val("vPapaFormat") === "") el("vPapaFormat").value = "D M S";
+        if (val("vDeltaUnite") === "") el("vDeltaUnite").value = "Heures";
+      }
+
+      // Titre du bloc SOIE
+      if (soie) {
+        el("titreSOIE").innerHTML =
+          (type === "AMBIANCE") ? "Message d'ambiance" : "Message de situation";
+      }
+
+      agrandirZones();
+    }
+
+    //==================================================================
+    // Initialisation
+    //==================================================================
+    function init() {
+      // FLmsg rend les champs non modifiables en mode lecture (View Form)
+      if (el("vNumero").readOnly) {
+        initLecture();
+      } else {
+        initSaisie();
+      }
+    }
+
+    function initSaisie() {
+      el('help-link').addEventListener('click', function (event) {
+        event.preventDefault();
+        el('help-panel').classList.add('active');
+      });
+      el('close-btn').addEventListener('click', function () {
+        el('help-panel').classList.remove('active');
+      });
+
+      // Valeurs par defaut des boutons radio. Elles ne figurent pas dans
+      // le code HTML : FLmsg les conserverait en lecture, a cote de la
+      // valeur recue, et le navigateur afficherait la mauvaise.
+      if (!getRadioValue("vType")) el("typeAmbiance").checked = true;
+      if (!getRadioValue("Priority")) el("prioRoutine").checked = true;
+
+      nommerGroupes();
+      restaurerGroupes();
+
+      remplirDateHeure();
+      proposerNumero();
+
+      if (!val("vOrigine")) {
+        var indicatif = lireStockage(CLE_INDICATIF);
+        if (indicatif) el("vOrigine").value = indicatif;
+      }
+
+      // Cases a cocher reconstituees depuis les champs masques
+      el("cbDemRep").checked = (val("Dem_Rep") === "Oui");
+      var gammes = val("vGolf").split(",");
+      for (var i = 0; i < gammes.length; i++) {
+        var g = gammes[i].replace(/^\s+|\s+$/g, "");
+        for (var j = 0; j < GAMMES.length; j++) {
+          if (GAMMES[j][0] === g) el(GAMMES[j][1]).checked = true;
+        }
+      }
+
+      // Bouton d'envoi ajoute par FLmsg
+      var envoi = document.querySelector('#ADRASECForm input[type="submit"]');
+      if (envoi) envoi.value = "Transmettre a FLmsg";
+
+      setFormType();
+    }
+
+    //==================================================================
+    // Envoi vers FLmsg
+    //==================================================================
+    function onSubmit() {
+      var type = getTypeMessage();
+      var encapsule = (type === "ENCAPSULE");
+      var codifiee = (type === "CODIFIEE");
+      var soie = (!encapsule && !codifiee);
+      var i;
+
+      // GOLF : assemblage des gammes cochees
+      var gammes = [];
+      for (i = 0; i < GAMMES.length; i++) {
+        if (el(GAMMES[i][1]).checked) gammes.push(GAMMES[i][0]);
+      }
+      if (codifiee && gammes.length === 0) {
+        alert("GOLF : indiquez au moins une gamme de frequences.");
+        return false;
+      }
+
+      var avis = 'Les donnees vont etre transmises a FLmsg.\n\n'
+               + 'Enregistrez ensuite le message dans FLmsg, puis envoyez-le\n'
+               + 'avec AutoSend.';
+      if (el("cbDemRep").checked) {
+        avis = 'ACCUSE DE RECEPTION DEMANDE\n\n'
+             + 'FLmsg ne gere pas les accuses automatiques : la station\n'
+             + 'destinataire repondra avec le formulaire AR ADRASEC.\n\n'
+             + avis;
+      }
+      if (!confirm(avis)) return false;
+
+      // Champs masques lus par FLmsg
+      el("vGolf").value = codifiee ? gammes.join(", ") : "";
+      el("Dem_Rep").value = el("cbDemRep").checked ? "Oui" : "";
+      for (i = 0; i < GROUPES.length; i++) {
+        el(GROUPES[i]).value = codifiee ? getRadioValue(nomGroupe(GROUPES[i])) : "";
+      }
+
+      // Vide les champs non utilises : FLmsg ne transmet pas les champs vides
+      if (!encapsule) vider(["vAutOrig", "vAutDest", "vSujet", "vMessage"]);
+      if (!soie) vider(["vJeSuis", "vJeVois", "vJeFais", "vJeDemande"]);
+      if (!codifiee) {
+        vider(["vPapaCommune", "vPapaGPS", "vAlpha", "vDelta", "vCommentaire",
+               "vPapaFormat", "vDeltaUnite"]);
+      }
+
+      // Conversion en ASCII (transmission fldigi)
+      for (i = 0; i < CHAMPS_TEXTE.length; i++) {
+        var champ = el(CHAMPS_TEXTE[i]);
+        champ.value = versAscii(champ.value);
+      }
+
+      // Memorisation locale : indicatif et compteur de messages
+      if (val("vOrigine")) ecrireStockage(CLE_INDICATIF, val("vOrigine"));
+      memoriserNumero(val("vNumero"));
+
+      return true;
+    }
+
+    //==================================================================
+    // Lecture d'un message (View Form ou retour apres envoi)
+    //==================================================================
+    function afficher(id, texte) {
+      el(id).textContent = texte;
+    }
+
+    function initLecture() {
+      el("formSection").style.display = "none";
+      el("viewSection").style.display = "";
+      el("help-link").style.display = "none";
+
+      var type = getTypeMessage() || "AMBIANCE";
+      var encapsule = (type === "ENCAPSULE");
+      var codifiee = (type === "CODIFIEE");
+      var soie = (!encapsule && !codifiee);
+      var prio = getRadioValue("Priority");
+      var demande = (val("Dem_Rep") === "Oui");
+
+      afficher("d_vTypeBanner", libelleType(type));
+      afficher("d_vReference", referenceMessage());
+      afficher("d_vNumero", val("vNumero"));
+      afficher("d_Priority", prio);
+      el("d_Priority").className = "code-block prio-" + prio;
+      afficher("d_Dem_Rep", demande ? "OUI" : "NON");
+      afficher("d_vDate", val("vDate"));
+      afficher("d_vHeure", val("vHeure"));
+      afficher("d_vOrigine", val("vOrigine"));
+      afficher("d_vTo", val("vTo"));
+
+      el("d_blocAutorites").style.display = encapsule ? "" : "none";
+      el("d_blocEncapsule").style.display = encapsule ? "" : "none";
+      el("d_blocSOIE").style.display = soie ? "" : "none";
+      el("d_blocCodifiee").style.display = codifiee ? "" : "none";
+
+      if (encapsule) {
+        afficher("d_vAutOrig", val("vAutOrig"));
+        afficher("d_vAutDest", val("vAutDest"));
+        afficher("d_vSujet", val("vSujet"));
+        afficher("d_vMessage", val("vMessage"));
+      }
+
+      if (soie) {
+        afficher("d_vJeSuis", val("vJeSuis"));
+        afficher("d_vJeVois", val("vJeVois"));
+        afficher("d_vJeFais", val("vJeFais"));
+        afficher("d_vJeDemande", val("vJeDemande"));
+      }
+
+      if (codifiee) {
+        afficher("d_vPapaCommune", val("vPapaCommune"));
+        afficher("d_vPapaGPS", val("vPapaGPS"));
+        afficher("d_vPapaFormat", val("vPapaFormat"));
+        afficher("d_vSierra", val("vSierra"));
+        afficher("d_vGolf", val("vGolf"));
+        afficher("d_vEcho", val("vEcho"));
+        afficher("d_vAlpha", val("vAlpha") + " Heures");
+        afficher("d_vDelta", val("vDelta") + " " + val("vDeltaUnite"));
+        afficher("d_vCommentaire", val("vCommentaire"));
+        // Le commentaire est facultatif : masque s'il est vide
+        if (val("vCommentaire").replace(/\s+/g, "") === "") {
+          el("d_ligneCommentaire").style.display = "none";
+        }
+      }
+
+      var bouton = el("btnPreparerAR");
+      if (demande) bouton.className = "secondaire demande";
+      bouton.addEventListener("click", preparerAR);
+    }
+
+    //==================================================================
+    // Preparation de l'accuse de reception (remplace le ReplyTemplate
+    // Winlink : FLmsg ne transmet aucune donnee au formulaire de reponse)
+    //==================================================================
+    function copierTexte(texte, suite) {
+      function repli() {
+        var ok = false;
+        try {
+          var zone = document.createElement("textarea");
+          zone.value = texte;
+          zone.style.position = "fixed";
+          zone.style.opacity = "0";
+          document.body.appendChild(zone);
+          zone.select();
+          ok = document.execCommand("copy");
+          document.body.removeChild(zone);
+        } catch (e) {
+          ok = false;
+        }
+        suite(ok);
+      }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(texte).then(function () { suite(true); }, repli);
+      } else {
+        repli();
+      }
+    }
+
+    function preparerAR() {
+      var ar = {
+        num: val("vNumero"),
+        to: val("vOrigine"),
+        ref: referenceMessage(),
+        t: new Date().getTime()
+      };
+
+      // Le stockage n'est partage avec le formulaire AR que si la page
+      // est servie par FLmsg (adresse http://127.0.0.1)
+      var partage = (window.location.protocol.indexOf("http") === 0) && stockageDisponible();
+      if (partage) ecrireStockage(CLE_AR, JSON.stringify(ar));
+
+      copierTexte(ar.ref, function (copie) {
+        var texte;
+        if (partage) {
+          texte = "Ouvrez maintenant le formulaire AR ADRASEC dans FLmsg "
+                + "(Edit Form) : le numero, le destinataire et la reference "
+                + "seront pre-remplis.";
+          if (copie) texte += " La reference est aussi copiee dans le presse-papiers.";
+        } else if (copie) {
+          texte = "Reference copiee dans le presse-papiers. Ouvrez le formulaire "
+                + "AR ADRASEC dans FLmsg et collez-la (Ctrl+V) dans le champ "
+                + "Reference ; destinataire : " + ar.to + ", N de l'AR : " + ar.num + ".";
+        } else {
+          texte = "Reference a recopier dans le formulaire AR ADRASEC : " + ar.ref
+                + " (destinataire : " + ar.to + ", N de l'AR : " + ar.num + ").";
+        }
+        var avis = el("avisAR");
+        avis.textContent = texte;
+        avis.style.display = "";
+      });
+    }
+  </script>
+
+</head>
+
+<body onload="init()">
+  <div class="container">
+
+    <div class="header">
+      <div class="left">
+        <svg class="logo" xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 320 320"
+          role="img" aria-label="Logo ADRASEC - Securite Civile">
+          <title>A.D.R.A.S.E.C - Securite Civile</title>
+          <defs>
+            <radialGradient id="adrOrange" cx="42%" cy="34%" r="78%">
+              <stop offset="0%" stop-color="#FFB347" />
+              <stop offset="55%" stop-color="#F58215" />
+              <stop offset="100%" stop-color="#D95E00" />
+            </radialGradient>
+            <linearGradient id="adrBleu" x1="20%" y1="0%" x2="85%" y2="100%">
+              <stop offset="0%" stop-color="#3F5CFF" />
+              <stop offset="55%" stop-color="#1B2FE0" />
+              <stop offset="100%" stop-color="#0A159E" />
+            </linearGradient>
+            <path id="adrArcHaut" d="M 51.0,199.7 A 116,116 0 1,1 269.0,199.7" fill="none" />
+            <path id="adrArcBas" d="M 19.1,211.3 A 150,150 0 0,0 300.9,211.3" fill="none" />
+          </defs>
+          <circle cx="160" cy="160" r="156" fill="none" stroke="#0A159E" stroke-width="4" />
+          <circle cx="160" cy="160" r="108" fill="url(#adrOrange)" />
+          <circle cx="160" cy="160" r="108" fill="none" stroke="#0A159E" stroke-width="3" />
+          <polygon points="160,52 253.5,214 66.5,214" fill="url(#adrBleu)" stroke="#08117F" stroke-width="3"
+            stroke-linejoin="round" />
+          <g font-family="'Arial Black','Arial Bold',Arial,Helvetica,sans-serif" font-weight="bold" fill="#0F1FBE">
+            <text font-size="27" letter-spacing="1">
+              <textPath href="#adrArcHaut" xlink:href="#adrArcHaut" startOffset="50%"
+                text-anchor="middle">A.D.R.A.S.E.C</textPath>
+            </text>
+            <text font-size="26" letter-spacing="1.5">
+              <textPath href="#adrArcBas" xlink:href="#adrArcBas" startOffset="50%"
+                text-anchor="middle">SECURITE CIVILE</textPath>
+            </text>
+          </g>
+        </svg>
+      </div>
+      <div class="center">
+        <h1>Message ADRASEC
+          <a href="#" id="help-link" title="Afficher l'aide en ligne">&#9432;</a>
+        </h1>
+      </div>
+    </div>
+
+    <div class="main-content">
+
+      <!-- ================= LECTURE (View Form) ================= -->
+      <section id="viewSection" style="display:none;">
+
+        <div class="grid-container">
+          <div class="form-group">
+            <span id="d_vTypeBanner" class="type-banner">&nbsp;</span>
+            <div id="d_vReference" class="reference"></div>
+          </div>
+        </div>
+
+        <!-- N&deg; / Priorite / AR -->
+        <div class="grid-container3">
+          <div class="form-group">
+            <label>Message N&deg;</label>
+            <span id="d_vNumero" class="code-block"></span>
+          </div>
+
+          <div class="form-group">
+            <label>Priorite</label>
+            <span id="d_Priority" class="code-block"></span>
+          </div>
+
+          <div class="form-group">
+            <label>Accuse de reception demande</label>
+            <span id="d_Dem_Rep" class="code-block"></span>
+          </div>
+        </div>
+
+        <!-- Date / Heure -->
+        <div class="grid-container3">
+          <div class="form-group">
+            <label>Date</label>
+            <span id="d_vDate" class="code-block"></span>
+          </div>
+
+          <div class="form-group">
+            <label>Heure</label>
+            <span id="d_vHeure" class="code-block"></span>
+          </div>
+
+          <div class="form-group"></div>
+        </div>
+
+        <hr>
+
+        <!-- Origine / Destinataire -->
+        <div class="grid-container2">
+          <div class="form-group">
+            <label>Origine</label>
+            <span id="d_vOrigine" class="code-block"></span>
+          </div>
+
+          <div class="form-group">
+            <label>Destinataire(s)</label>
+            <span id="d_vTo" class="code-block"></span>
+          </div>
+        </div>
+
+        <!-- Message encapsule -->
+        <div id="d_blocAutorites">
+          <div class="grid-container2">
+            <div class="form-group">
+              <label>Autorite d'origine</label>
+              <span id="d_vAutOrig" class="code-block"></span>
+            </div>
+
+            <div class="form-group">
+              <label>Autorite destinataire</label>
+              <span id="d_vAutDest" class="code-block"></span>
+            </div>
+          </div>
+        </div>
+
+        <div id="d_blocEncapsule">
+          <hr>
+          <div class="grid-container">
+            <div class="form-group">
+              <label>Sujet</label>
+              <span id="d_vSujet" class="code-block"></span>
+            </div>
+          </div>
+
+          <div class="grid-container">
+            <div class="form-group">
+              <label>Message de l'autorite</label>
+              <pre id="d_vMessage" class="code-block"></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ambiance / Situation -->
+        <div id="d_blocSOIE">
+          <hr>
+          <div class="grid-container">
+            <div class="form-group">
+              <label>Je suis</label>
+              <pre id="d_vJeSuis" class="code-block"></pre>
+            </div>
+          </div>
+
+          <div class="grid-container">
+            <div class="form-group">
+              <label>Je vois</label>
+              <pre id="d_vJeVois" class="code-block"></pre>
+            </div>
+          </div>
+
+          <div class="grid-container">
+            <div class="form-group">
+              <label>Je fais</label>
+              <pre id="d_vJeFais" class="code-block"></pre>
+            </div>
+          </div>
+
+          <div class="grid-container">
+            <div class="form-group">
+              <label>Je demande</label>
+              <pre id="d_vJeDemande" class="code-block"></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Procedure codifiee -->
+        <div id="d_blocCodifiee">
+          <hr>
+          <div class="grid-container3">
+            <div class="form-group">
+              <label>PAPA &ndash; Commune</label>
+              <span id="d_vPapaCommune" class="code-block"></span>
+            </div>
+
+            <div class="form-group">
+              <label>PAPA &ndash; Coordonnees</label>
+              <span id="d_vPapaGPS" class="code-block"></span>
+            </div>
+
+            <div class="form-group">
+              <label>PAPA &ndash; Format</label>
+              <span id="d_vPapaFormat" class="code-block"></span>
+            </div>
+          </div>
+
+          <div class="grid-container3">
+            <div class="form-group">
+              <label>SIERRA &ndash; Station</label>
+              <span id="d_vSierra" class="code-block"></span>
+            </div>
+
+            <div class="form-group">
+              <label>GOLF &ndash; Gammes</label>
+              <span id="d_vGolf" class="code-block"></span>
+            </div>
+
+            <div class="form-group">
+              <label>ECHO &ndash; Source electrique</label>
+              <span id="d_vEcho" class="code-block"></span>
+            </div>
+          </div>
+
+          <div class="grid-container3">
+            <div class="form-group">
+              <label>ALPHA &ndash; Autonomie</label>
+              <span id="d_vAlpha" class="code-block"></span>
+            </div>
+
+            <div class="form-group">
+              <label>DELTA &ndash; Disponibilite</label>
+              <span id="d_vDelta" class="code-block"></span>
+            </div>
+
+            <div class="form-group"></div>
+          </div>
+
+          <div class="grid-container" id="d_ligneCommentaire">
+            <div class="form-group">
+              <label>Commentaire</label>
+              <pre id="d_vCommentaire" class="code-block"></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group button no-print">
+          <button id="printPageButton" type="button" onclick="window.print()">Imprimer</button>
+          <button id="btnPreparerAR" type="button" class="secondaire">Preparer l'accuse de reception</button>
+        </div>
+        <div id="avisAR" class="avis-ar no-print" style="display:none;"></div>
+
+      </section>
+
+      <!-- ================= SAISIE (Edit Form) ================= -->
+      <section id="formSection">
+        <form id="ADRASECForm" onsubmit="return onSubmit();">
+
+          <!-- Champs masques alimentes par les cases a cocher -->
+          <input type="text" name="Dem_Rep" id="Dem_Rep" class="masque" tabindex="-1">
+          <input type="text" name="vGolf" id="vGolf" class="masque" tabindex="-1">
+          <input type="text" name="vSierra" id="vSierra" class="masque" tabindex="-1">
+          <input type="text" name="vEcho" id="vEcho" class="masque" tabindex="-1">
+
+          <!-- Type de message -->
+          <div class="grid-container">
+            <div class="form-group">
+              <label>Type de message</label>
+              <div class="radio-group">
+                <div class="green">
+                  <input type="radio" name="vType" id="typeAmbiance" value="AMBIANCE" onclick="setFormType()">
+                  <span>Message d'ambiance</span>
+                </div>
+                <div class="orange">
+                  <input type="radio" name="vType" id="typeSituation" value="SITUATION" onclick="setFormType()">
+                  <span>Message de situation</span>
+                </div>
+                <div class="blue">
+                  <input type="radio" name="vType" id="typeEncapsule" value="ENCAPSULE" onclick="setFormType()">
+                  <span>Message encapsule</span>
+                </div>
+                <div class="purple">
+                  <input type="radio" name="vType" id="typeCodifiee" value="CODIFIEE" onclick="setFormType()">
+                  <span>Procedure codifiee</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- N&deg; message / Priorite / Accuse de reception -->
+          <div class="grid-container3">
+            <div class="form-group">
+              <label for="vNumero">N&deg; du message</label>
+              <input type="text" name="vNumero" id="vNumero"
+                title="Propose automatiquement, vous pouvez le remplacer par votre propre numerotation"
+                size="8" maxlength="10" style="color: red;" required>
+            </div>
+
+            <div class="form-group">
+              <label>Priorite</label>
+              <div class="radio-group">
+                <div class="red">
+                  <input type="radio" name="Priority" id="prioImmediat" value="IMMEDIAT">
+                  <span>Immediat</span>
+                </div>
+                <div class="orange">
+                  <input type="radio" name="Priority" id="prioUrgent" value="URGENT">
+                  <span>Urgent</span>
+                </div>
+                <div class="green">
+                  <input type="radio" name="Priority" id="prioRoutine" value="ROUTINE">
+                  <span>Routine</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div style="display: flex; align-items: center; height: 100%; padding-top: 10px;">
+                <input type="checkbox" id="cbDemRep"
+                  style="width: 20px; height: 20px; margin-right: 8px; margin-top: 0;">
+                <label for="cbDemRep" style="margin: 0;">Demander un accuse de reception</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Date / Heure locales -->
+          <div class="grid-container2">
+            <div class="form-group">
+              <label for="vDate">Date</label>
+              <input type="text" name="vDate" id="vDate" placeholder="AAAA-MM-JJ" title="Date du message" required>
+            </div>
+
+            <div class="form-group">
+              <label for="vHeure">Heure locale</label>
+              <input type="text" name="vHeure" id="vHeure" placeholder="HH:MM" title="Heure locale" required>
+            </div>
+          </div>
+
+          <div class="spacer"></div>
+          <hr>
+
+          <!-- Origine / Destinataire -->
+          <div class="grid-container2">
+            <div class="form-group">
+              <label for="vOrigine">Origine</label>
+              <input type="text" name="vOrigine" id="vOrigine" title="Indicatif de la station emettrice"
+                placeholder="Indicatif de la station emettrice" size="20" maxlength="20" class="bg-yellow" required>
+            </div>
+
+            <div class="form-group">
+              <label for="vTo">Destinataire(s)</label>
+              <input type="text" name="vTo" id="vTo" title="Indicatifs des destinataires"
+                placeholder="Separes par des ';'. Ex : F1ABC;F2DEF" size="100" maxlength="100" class="bg-yellow"
+                required>
+            </div>
+          </div>
+
+          <!-- ============ Bloc MESSAGE ENCAPSULE ============ -->
+          <div id="blocAutorites">
+            <div class="section-title">Message encapsule</div>
+            <div class="grid-container2">
+              <div class="form-group">
+                <label for="vAutOrig">Autorite d'origine</label>
+                <input type="text" name="vAutOrig" id="vAutOrig" title="Autorite d'origine"
+                  placeholder="Ex : Prefecture, COD, COZ..." size="80" maxlength="80" class="bg-green">
+              </div>
+
+              <div class="form-group">
+                <label for="vAutDest">Autorite destinataire</label>
+                <input type="text" name="vAutDest" id="vAutDest" title="Autorite destinataire"
+                  placeholder="Ex : COGIC, COD, COZ..." size="80" maxlength="80" class="bg-green">
+              </div>
+            </div>
+          </div>
+
+          <div id="blocEncapsule">
+            <div class="grid-container">
+              <div class="form-group">
+                <label for="vSujet">Sujet</label>
+                <textarea name="vSujet" id="vSujet" placeholder="Objet du message de l'autorite"
+                  title="Sujet du message" rows="1" onkeyup="AutoGrowTextArea(this)"></textarea>
+              </div>
+            </div>
+
+            <div class="grid-container">
+              <div class="form-group">
+                <label for="vMessage">Message de l'autorite</label>
+                <textarea name="vMessage" id="vMessage"
+                  placeholder="Ecrire ou copier ici le message de l'autorite a transmettre"
+                  title="Message de l'autorite" rows="12" onkeyup="AutoGrowTextArea(this)"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ Bloc AMBIANCE / SITUATION ============ -->
+          <div id="blocSOIE">
+            <div class="section-title" id="titreSOIE">Message d'ambiance</div>
+
+            <div class="grid-container">
+              <div class="form-group">
+                <label for="vJeSuis">Je suis</label>
+                <textarea name="vJeSuis" id="vJeSuis" placeholder="Position, localisation, moyens engages..."
+                  title="Je suis" rows="3" onkeyup="AutoGrowTextArea(this)"></textarea>
+              </div>
+            </div>
+
+            <div class="grid-container">
+              <div class="form-group">
+                <label for="vJeVois">Je vois</label>
+                <textarea name="vJeVois" id="vJeVois" placeholder="Constat objectif de la situation observee..."
+                  title="Je vois" rows="4" onkeyup="AutoGrowTextArea(this)"></textarea>
+              </div>
+            </div>
+
+            <div class="grid-container">
+              <div class="form-group">
+                <label for="vJeFais">Je fais</label>
+                <textarea name="vJeFais" id="vJeFais" placeholder="Actions engagees ou en cours..."
+                  title="Je fais" rows="4" onkeyup="AutoGrowTextArea(this)"></textarea>
+              </div>
+            </div>
+
+            <div class="grid-container">
+              <div class="form-group">
+                <label for="vJeDemande">Je demande</label>
+                <textarea name="vJeDemande" id="vJeDemande" placeholder="Moyens, renforts, instructions demandes..."
+                  title="Je demande" rows="3" onkeyup="AutoGrowTextArea(this)"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ Bloc PROCEDURE CODIFIEE ============ -->
+          <div id="blocCodifiee">
+            <div class="section-title">Procedure codifiee</div>
+
+            <div class="rubrique">
+              <div class="rubrique-titre"><b>PAPA</b><span>Position</span></div>
+              <div class="rubrique-corps">
+                <div class="grid-container3">
+                  <div class="form-group">
+                    <label for="vPapaCommune">Commune</label>
+                    <input type="text" name="vPapaCommune" id="vPapaCommune" title="Commune ou lieu-dit"
+                      placeholder="Ex : commune du lieu" maxlength="60">
+                  </div>
+
+                  <div class="form-group">
+                    <label for="vPapaGPS">Coordonnees</label>
+                    <input type="text" name="vPapaGPS" id="vPapaGPS" title="Coordonnees GPS"
+                      placeholder="Ex : 43 39 34 N 006 55 26 E" maxlength="60">
+                  </div>
+
+                  <div class="form-group">
+                    <label for="vPapaFormat">Format</label>
+                    <select name="vPapaFormat" id="vPapaFormat" title="Format des coordonnees transmises">
+                      <option hidden value=""></option>
+                      <option value="D M S">D&deg; M' S&quot;</option>
+                      <option value="D M.mmm">D&deg; M.mmm'</option>
+                      <option value="D.dddd">Degres decimaux</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rubrique">
+              <div class="rubrique-titre"><b>SIERRA</b><span>Station</span></div>
+              <div class="rubrique-corps">
+                <div class="radio-group">
+                  <div>
+                    <input type="radio" data-groupe="vSierra" id="vSierraFixe" value="Fixe">
+                    <span>Fixe</span>
+                  </div>
+                  <div>
+                    <input type="radio" data-groupe="vSierra" id="vSierraMobile" value="Mobile">
+                    <span>Mobile</span>
+                  </div>
+                  <div>
+                    <input type="radio" data-groupe="vSierra" id="vSierraPortable" value="Portable">
+                    <span>Portable</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rubrique">
+              <div class="rubrique-titre"><b>GOLF</b><span>Gammes exploitables</span></div>
+              <div class="rubrique-corps">
+                <div class="radio-group">
+                  <div>
+                    <input type="checkbox" id="cbGolfHF">
+                    <span>HF</span>
+                  </div>
+                  <div>
+                    <input type="checkbox" id="cbGolfVHF">
+                    <span>VHF</span>
+                  </div>
+                  <div>
+                    <input type="checkbox" id="cbGolfUHF">
+                    <span>UHF</span>
+                  </div>
+                  <div>
+                    <input type="checkbox" id="cbGolfQO100">
+                    <span>QO100</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rubrique">
+              <div class="rubrique-titre"><b>ECHO</b><span>Alimentation</span></div>
+              <div class="rubrique-corps">
+                <div class="radio-group">
+                  <div>
+                    <input type="radio" data-groupe="vEcho" id="vEchoSecteur" value="Secteur">
+                    <span>Secteur</span>
+                  </div>
+                  <div>
+                    <input type="radio" data-groupe="vEcho" id="vEchoGroupe" value="Groupe electrogene">
+                    <span>Groupe electrogene</span>
+                  </div>
+                  <div>
+                    <input type="radio" data-groupe="vEcho" id="vEchoSolaire" value="Panneaux solaires">
+                    <span>Panneaux solaires</span>
+                  </div>
+                  <div>
+                    <input type="radio" data-groupe="vEcho" id="vEchoEolienne" value="Eolienne">
+                    <span>Eolienne</span>
+                  </div>
+                  <div>
+                    <input type="radio" data-groupe="vEcho" id="vEchoBatterie" value="Batterie">
+                    <span>Batterie</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rubrique">
+              <div class="rubrique-titre"><b>ALPHA</b><span>Autonomie</span></div>
+              <div class="rubrique-corps">
+                <div class="ligne-champ">
+                  <div class="form-group">
+                    <input type="number" name="vAlpha" id="vAlpha" min="0" step="1" placeholder="XX"
+                      class="champ-court" title="Autonomie en heures">
+                  </div>
+                  <span class="unite">heures</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="rubrique">
+              <div class="rubrique-titre"><b>DELTA</b><span>Disponibilite</span></div>
+              <div class="rubrique-corps">
+                <div class="ligne-champ">
+                  <div class="form-group">
+                    <input type="number" name="vDelta" id="vDelta" min="0" step="1" placeholder="XX"
+                      class="champ-court" title="Delai avant d'etre operationnel">
+                  </div>
+                  <div class="form-group">
+                    <select name="vDeltaUnite" id="vDeltaUnite" class="champ-court"
+                      title="Unite du delai de disponibilite">
+                      <option hidden value=""></option>
+                      <option value="Heures">heures</option>
+                      <option value="Minutes">minutes</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-container">
+              <div class="form-group">
+                <label for="vCommentaire">Commentaire (facultatif)</label>
+                <textarea name="vCommentaire" id="vCommentaire"
+                  placeholder="Precision utile : relais utilise, acces au site, equipe presente..."
+                  title="Commentaire libre" rows="3" onkeyup="AutoGrowTextArea(this)"></textarea>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </section>
+
+    </div>
+
+    <div class="footer no-print">
+      <span id="version" class="footer-text">ADRASEC - Message v1.1.0</span>
+      <span id="brand" class="adrasec-text">ADRASEC</span>
+      <span id="projectLink" class="footer-text">FLmsg Custom Form</span>
+    </div>
+
+  </div>
+
+  <!-- Panneau d'aide -->
+  <div id="help-panel" class="help-panel no-print">
+    <div class="help-container">
+      <button id="close-btn" class="close-btn" type="button">Fermer</button>
+      <div class="help-content">
+        <h2>Aide a la redaction</h2>
+
+        <div class="info">
+          Le formulaire s'adapte au <b>type de message</b> choisi en haut de page.
+        </div>
+
+        <h3>Message d'ambiance</h3>
+        <p>Premier compte rendu depuis le terrain, transmis des l'arrivee sur les lieux.
+          Il donne une premiere image de la situation.</p>
+
+        <h3>Message de situation</h3>
+        <p>Compte rendu periodique qui actualise l'ambiance : evolution, moyens, besoins.</p>
+
+        <h3>Message encapsule</h3>
+        <p>Transport d'un message redige par une autorite. Le radioamateur n'en est pas
+          l'auteur : il indique l'autorite d'origine et l'autorite destinataire, puis
+          recopie le texte sans le modifier.</p>
+
+        <h3>Procedure codifiee</h3>
+        <p>Compte rendu normalise de l'etat de la station, transmis a l'ouverture du
+          reseau ou sur demande du gestionnaire.</p>
+        <ul>
+          <li><b>PAPA</b> : position, commune et coordonnees. Le format transmis
+            accompagne les coordonnees.</li>
+          <li><b>SIERRA</b> : station fixe, mobile ou portable.</li>
+          <li><b>GOLF</b> : gammes exploitables, plusieurs choix possibles.</li>
+          <li><b>ECHO</b> : source d'alimentation electrique.</li>
+          <li><b>ALPHA</b> : autonomie restante, en heures.</li>
+          <li><b>DELTA</b> : delai avant d'etre operationnel.</li>
+        </ul>
+
+        <h3>Les quatre rubriques</h3>
+        <ul>
+          <li><b>Je suis</b> : ou je me trouve, avec quels moyens.</li>
+          <li><b>Je vois</b> : ce que j'observe, sans interpretation.</li>
+          <li><b>Je fais</b> : les actions que j'ai engagees.</li>
+          <li><b>Je demande</b> : les moyens ou instructions dont j'ai besoin.</li>
+        </ul>
+
+        <h3>Envoi avec FLmsg</h3>
+        <ol>
+          <li>Cliquez sur <b>Transmettre a FLmsg</b> en bas du formulaire : les donnees
+            passent dans FLmsg et le navigateur affiche le message en lecture.</li>
+          <li>Enregistrez le message dans FLmsg (fichier .k2s).</li>
+          <li>Choisissez le mode numerique puis cliquez sur <b>AutoSend</b> :
+            fldigi transmet le message.</li>
+        </ol>
+
+        <h3>Accuse de reception</h3>
+        <p>FLmsg n'envoie aucun accuse automatique. La station destinataire ouvre le
+          message recu, clique sur <b>Preparer l'accuse de reception</b>, puis remplit
+          le formulaire <b>AR ADRASEC</b>.</p>
+
+        <div class="warning">
+          Tous les accents et caracteres speciaux sont convertis en ASCII a l'envoi :
+          les modes numeriques de fldigi (MT63, Olivia...) ne transmettent pas toujours
+          les caracteres accentues.
+        </div>
+
+        <div class="info">
+          Seules les valeurs des champs sont transmises. Le destinataire doit disposer
+          du meme fichier <b>ADRASEC_Message.html</b> dans le dossier CUSTOM de FLmsg.
+        </div>
+
+        <h3>Champs</h3>
+        <ul>
+          <li><b>N&deg; du message</b> : propose par un compteur local au navigateur,
+            modifiable.</li>
+          <li><b>Date / Heure</b> : heure locale, renseignee automatiquement et modifiable.</li>
+          <li><b>Origine</b> : indicatif de la station emettrice (fond jaune), memorise
+            d'un message a l'autre.</li>
+          <li><b>Destinataire(s)</b> : indicatifs separes par des points-virgules.</li>
+          <li><b>Autorites</b> (fond vert) : uniquement pour un message encapsule.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>

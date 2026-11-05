@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+
+<!--
+--------------------------------------------------------------------------
+-- Formulaire FLmsg ADRASEC - Accuse de reception
+--
+-- Un seul fichier sert a la saisie (Edit Form) et a la lecture
+-- (View Form) : FLmsg y injecte les valeurs du message.
+-- A placer dans le dossier CUSTOM de FLmsg, chez l'emetteur ET chez
+-- le destinataire, sous ce nom exact : ADRASEC_AR.html
+-- Gabarit visuel inspire des modeles FNRASEC (F4IXH - MIT)
+--
+-- FLmsg ne connait pas les modeles de reponse de Winlink : le
+-- formulaire Message ADRASEC memorise la reference du message recu
+-- (bouton "Preparer l'accuse de reception") et ce formulaire la
+-- reprend a l'ouverture.
+--
+-- Contraintes de l'analyseur FLmsg (custom.cxx) a respecter en cas
+-- de modification :
+--  - tout le code JavaScript reste dans l'en-tete du document, car
+--    FLmsg passe en majuscules certains mots-cles du corps ;
+--  - chaque champ declare son type (text, radio) ;
+--  - l'attribut name precede toujours un eventuel attribut value ;
+--  - jamais de champ desactive en saisie ;
+--  - aucune valeur par defaut dans le code HTML (bouton radio coche) :
+--    FLmsg la conserverait en lecture a cote de la valeur recue. Elle
+--    est posee en JavaScript a la saisie ;
+--  - pas d'action, de methode ni d'encodage sur le formulaire, et pas
+--    de bouton d'envoi : FLmsg fournit les siens ;
+--  - aucun chevron dans les attributs des champs.
+--------------------------------------------------------------------------
+-->
+
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <META NAME="EDITABLE" CONTENT="true">
+  <META NAME="MENU_ITEM" CONTENT="AR ADRASEC">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Formulaire FLmsg ADRASEC">
+  <meta name="version" content="1.1.0">
+  <title>Accuse de reception ADRASEC</title>
+
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 10px;
+      padding: 0px;
+      display: flex;
+      justify-content: left;
+      align-items: top;
+      background-color: #f0f2f5;
+      color: #333;
+    }
+
+    a { color: #007bff; text-decoration: none; }
+    a:hover { color: #0056b3; text-decoration: underline; }
+
+    hr {
+      border: none;
+      border-top: 1px dotted #333;
+    }
+
+    pre { margin: 0; }
+
+    input[type="radio"] {
+      transform: scale(1.3);
+      margin-right: 5px;
+      margin-top: 0;
+    }
+
+    .spacer { margin-top: 18px; margin-bottom: 18px; }
+
+    .container {
+      background-color: #ffffff;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 850px;
+    }
+
+    .main-content { padding: 0; min-height: 60vh; }
+
+    .grid-container { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+    .grid-container2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .grid-container3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+    @media print {
+      @page { margin: 0; }
+      body { padding: 10px; }
+      .no-print, .no-print * { display: none !important; }
+      .container {
+        background-color: transparent;
+        padding: 0;
+        border-radius: 0;
+        box-shadow: none;
+        width: 100%;
+        max-width: none;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .grid-container, .grid-container2, .grid-container3 { grid-template-columns: 1fr; }
+    }
+
+    /* header */
+    .header {
+      text-align: left;
+      margin-bottom: 1.3rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+    }
+
+    .header div.left { text-align: left; }
+    .header div.center { text-align: center; }
+
+    .header h1 {
+      font-size: 1.5em;
+      margin: 0.5em;
+      margin-bottom: 0.8rem;
+      text-align: center;
+    }
+
+    /* Logo vectoriel du bandeau */
+    .header svg.logo {
+      height: 110px;
+      width: auto;
+      display: inline-block;
+    }
+
+    @media (max-width: 600px) {
+      .header svg.logo { height: 72px; }
+    }
+
+    /* form */
+    .form-group { margin-bottom: 0.5rem; margin-top: 0.5rem; }
+
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+      color: #333;
+      font-size: 0.875rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 0.875rem;
+      font-family: 'Arial', sans-serif;
+    }
+
+    .form-group textarea { min-width: 100%; }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+
+    .form-group input.bg-yellow { background-color: lightyellow; }
+
+    .radio-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-top: 8px;
+    }
+
+    .radio-group div { display: flex; align-items: center; gap: 3px; }
+    .form-group .radio-group input { width: auto; flex: 0 0 auto; }
+
+    .radio-group span { font-weight: bold; font-size: 0.875rem; }
+    .radio-group .red { color: red; }
+    .radio-group .orange { color: orange; }
+    .radio-group .green { color: green; }
+
+    .button { display: flex; justify-content: center; margin: 20px; }
+
+    .form-group button,
+    #ADRASECARForm input[type="submit"] {
+      padding: 0.5rem 1rem;
+      background-color: #007bff;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-size: 0.875rem;
+    }
+
+    .form-group button:hover,
+    #ADRASECARForm input[type="submit"]:hover { background-color: #0056b3; }
+
+    /* Bouton d'envoi ajoute par FLmsg en fin de formulaire */
+    #ADRASECARForm input[type="submit"] {
+      display: block;
+      width: auto;
+      margin: 20px auto;
+    }
+
+    /* Lecture */
+    .type-banner {
+      display: inline-block;
+      font-weight: bold;
+      font-size: 1rem;
+      letter-spacing: 1px;
+      color: #fff;
+      background-color: #007bff;
+      border-radius: 4px;
+      padding: 6px 14px;
+      margin-bottom: 0.5rem;
+    }
+
+    .reference {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      color: #555;
+      word-wrap: break-word;
+    }
+
+    .code-block {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      color: #333;
+      line-height: 1.4;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      width: 100%;
+      box-sizing: border-box;
+      display: block;
+    }
+
+    .prio-IMMEDIAT { color: red; font-weight: bold; }
+    .prio-URGENT { color: orange; font-weight: bold; }
+    .prio-ROUTINE { color: green; font-weight: bold; }
+
+    /* footer */
+    .footer {
+      width: 100%;
+      bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-text {
+      text-align: center;
+      font-style: italic;
+      margin-top: 0.5rem;
+      color: #777;
+      font-size: 0.75rem;
+    }
+
+    .adrasec-text {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 0.5rem;
+      color: #777;
+      font-size: 0.75rem;
+    }
+
+    /* help */
+    .help-panel {
+      width: 30%;
+      min-width: 300px;
+      padding: 0;
+      margin: 0;
+      background-color: #f4f4f9;
+      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.3s;
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1000;
+    }
+
+    .help-container { padding: 20px; }
+    .help-panel.active { transform: translateX(0); }
+    div.help-content { color: #333; margin-top: 30px; }
+    .help-panel li { margin-bottom: 10px; }
+
+    .help-panel .close-btn {
+      background: #ddd;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      padding: 4px 10px;
+      float: left;
+    }
+
+    .warning {
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .info {
+      background-color: #cfe2ff;
+      border: 1px solid #b6d4fe;
+      color: #004085;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+  </style>
+
+  <script type="text/javascript">
+    //==================================================================
+    // Constantes et utilitaires
+    //==================================================================
+
+    // Cles du stockage local, partagees avec le formulaire Message
+    var CLE_INDICATIF = "adrasec.indicatif";
+    var CLE_AR = "adrasec.arEnAttente";
+
+    // Duree de validite d'une reference preparee (24 heures)
+    var VALIDITE_AR_MS = 24 * 3600 * 1000;
+
+    // Champs saisis au clavier, convertis en ASCII a l'envoi
+    var CHAMPS_TEXTE = ["vNumero", "vDate", "vHeure", "vOrigine", "vTo", "vRef", "vCommentaire"];
+
+    function el(id) { return document.getElementById(id); }
+
+    function val(id) {
+      var e = el(id);
+      return e ? e.value : "";
+    }
+
+    function lireStockage(cle) {
+      try { return window.localStorage.getItem(cle); } catch (e) { return null; }
+    }
+
+    function ecrireStockage(cle, valeur) {
+      try { window.localStorage.setItem(cle, valeur); } catch (e) { }
+    }
+
+    function supprimerStockage(cle) {
+      try { window.localStorage.removeItem(cle); } catch (e) { }
+    }
+
+    function AutoGrowTextArea(textField) {
+      if (textField.clientHeight < textField.scrollHeight) {
+        textField.style.height = textField.scrollHeight + "px";
+        if (textField.clientHeight < textField.scrollHeight) {
+          textField.style.height = (textField.scrollHeight * 2 - textField.clientHeight) + "px";
+        }
+      }
+    }
+
+    // Conversion en ASCII 7 bits (transmission fldigi)
+    function versAscii(texte) {
+      var t = String(texte);
+      t = t.replace(/[\u2018\u2019\u201A\u2032\u00B4]/g, "'");
+      t = t.replace(/[\u201C\u201D\u201E\u2033\u00AB\u00BB]/g, '"');
+      t = t.replace(/[\u2010-\u2015\u2212]/g, "-");
+      t = t.replace(/\u2026/g, "...");
+      t = t.replace(/[\u00A0\u2007\u202F]/g, " ");
+      t = t.replace(/\u20AC/g, "EUR");
+      t = t.replace(/\u00B0/g, " ");
+      t = t.replace(/\u0152/g, "OE").replace(/\u0153/g, "oe");
+      t = t.replace(/\u00C6/g, "AE").replace(/\u00E6/g, "ae");
+      t = t.replace(/\u00DF/g, "ss");
+      if (t.normalize) t = t.normalize("NFD").replace(/[\u0300-\u036F]/g, "");
+      return t.replace(/[^\t\n\r\x20-\x7E]/g, "?");
+    }
+
+    // Date et heure locales, uniquement si les champs sont vides
+    function remplirDateHeure() {
+      var d = new Date();
+      if (!val("vDate")) {
+        el("vDate").value =
+          d.getFullYear() + '-' +
+          ('0' + (d.getMonth() + 1)).slice(-2) + '-' +
+          ('0' + d.getDate()).slice(-2);
+      }
+      if (!val("vHeure")) {
+        el("vHeure").value =
+          ('0' + d.getHours()).slice(-2) + ':' +
+          ('0' + d.getMinutes()).slice(-2) + ' (LOC)';
+      }
+    }
+
+    function getRadioValue(nom) {
+      var radios = document.getElementsByName(nom);
+      for (var i = 0; i < radios.length; i++) {
+        if (radios[i].checked) return radios[i].value;
+      }
+      return "";
+    }
+
+    // Reference preparee depuis le message recu, si elle est recente
+    function lireARenAttente() {
+      var brut = lireStockage(CLE_AR);
+      if (!brut) return null;
+      try {
+        var ar = JSON.parse(brut);
+        if (ar && ar.t && (new Date().getTime() - ar.t) < VALIDITE_AR_MS) return ar;
+      } catch (e) { }
+      return null;
+    }
+
+    //==================================================================
+    // Initialisation
+    //==================================================================
+    function init() {
+      // FLmsg rend les champs non modifiables en mode lecture (View Form)
+      if (el("vNumero").readOnly) {
+        initLecture();
+      } else {
+        initSaisie();
+      }
+    }
+
+    function initSaisie() {
+      el('help-link').addEventListener('click', function (event) {
+        event.preventDefault();
+        el('help-panel').classList.add('active');
+      });
+      el('close-btn').addEventListener('click', function () {
+        el('help-panel').classList.remove('active');
+      });
+
+      // Valeur par defaut de la priorite. Elle ne figure pas dans le code
+      // HTML : FLmsg la conserverait en lecture, a cote de la valeur recue.
+      if (!getRadioValue("Priority")) el("prioRoutine").checked = true;
+
+      remplirDateHeure();
+
+      if (!val("vOrigine")) {
+        var indicatif = lireStockage(CLE_INDICATIF);
+        if (indicatif) el("vOrigine").value = indicatif;
+      }
+
+      // Nouvel AR : reprise de la reference preparee depuis le message recu
+      if (!val("vNumero") && !val("vTo") && !val("vRef")) {
+        var ar = lireARenAttente();
+        if (ar) {
+          el("vNumero").value = ar.num || "";
+          el("vTo").value = ar.to || "";
+          el("vRef").value = ar.ref || "";
+          var avis = el("avisPreRempli");
+          avis.textContent = "Pre-rempli a partir du message N " + ar.num
+                           + " de " + ar.to + ". Verifiez avant l'envoi.";
+          avis.style.display = "";
+        }
+      }
+
+      // Bouton d'envoi ajoute par FLmsg
+      var envoi = document.querySelector('#ADRASECARForm input[type="submit"]');
+      if (envoi) envoi.value = "Transmettre a FLmsg";
+
+      AutoGrowTextArea(el("vRef"));
+      AutoGrowTextArea(el("vCommentaire"));
+    }
+
+    //==================================================================
+    // Envoi vers FLmsg
+    //==================================================================
+    function onSubmit() {
+      if (!confirm('Les donnees vont etre transmises a FLmsg.\n\n'
+                 + 'Enregistrez ensuite l\'accuse de reception dans FLmsg,\n'
+                 + 'puis envoyez-le avec AutoSend.')) {
+        return false;
+      }
+
+      for (var i = 0; i < CHAMPS_TEXTE.length; i++) {
+        var champ = el(CHAMPS_TEXTE[i]);
+        champ.value = versAscii(champ.value);
+      }
+
+      if (val("vOrigine")) ecrireStockage(CLE_INDICATIF, val("vOrigine"));
+
+      // La reference preparee est consommee par cet AR
+      var ar = lireARenAttente();
+      if (ar && ar.num === val("vNumero")) supprimerStockage(CLE_AR);
+
+      return true;
+    }
+
+    //==================================================================
+    // Lecture d'un AR (View Form ou retour apres envoi)
+    //==================================================================
+    function afficher(id, texte) {
+      el(id).textContent = texte;
+    }
+
+    function initLecture() {
+      el("formSection").style.display = "none";
+      el("viewSection").style.display = "";
+      el("help-link").style.display = "none";
+
+      var prio = getRadioValue("Priority");
+
+      afficher("d_vReference", "[" + prio + "][AR/" + val("vNumero") + "] " + val("vRef"));
+      afficher("d_vNumero", "AR/" + val("vNumero"));
+      afficher("d_Priority", prio);
+      el("d_Priority").className = "code-block prio-" + prio;
+      afficher("d_vDate", val("vDate"));
+      afficher("d_vHeure", val("vHeure"));
+      afficher("d_vOrigine", val("vOrigine"));
+      afficher("d_vTo", val("vTo"));
+      afficher("d_vRef", val("vRef"));
+      afficher("d_vCommentaire", val("vCommentaire"));
+    }
+  </script>
+
+</head>
+
+<body onload="init()">
+  <div class="container">
+
+    <div class="header">
+      <div class="left">
+        <svg class="logo" xmlns="http://www.w3.org/2000/svg"
+          xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 320 320"
+          role="img" aria-label="Logo ADRASEC - Securite Civile">
+          <title>A.D.R.A.S.E.C - Securite Civile</title>
+          <defs>
+            <radialGradient id="adrOrange" cx="42%" cy="34%" r="78%">
+              <stop offset="0%" stop-color="#FFB347" />
+              <stop offset="55%" stop-color="#F58215" />
+              <stop offset="100%" stop-color="#D95E00" />
+            </radialGradient>
+            <linearGradient id="adrBleu" x1="20%" y1="0%" x2="85%" y2="100%">
+              <stop offset="0%" stop-color="#3F5CFF" />
+              <stop offset="55%" stop-color="#1B2FE0" />
+              <stop offset="100%" stop-color="#0A159E" />
+            </linearGradient>
+            <path id="adrArcHaut" d="M 51.0,199.7 A 116,116 0 1,1 269.0,199.7" fill="none" />
+            <path id="adrArcBas" d="M 19.1,211.3 A 150,150 0 0,0 300.9,211.3" fill="none" />
+          </defs>
+          <circle cx="160" cy="160" r="156" fill="none" stroke="#0A159E" stroke-width="4" />
+          <circle cx="160" cy="160" r="108" fill="url(#adrOrange)" />
+          <circle cx="160" cy="160" r="108" fill="none" stroke="#0A159E" stroke-width="3" />
+          <polygon points="160,52 253.5,214 66.5,214" fill="url(#adrBleu)" stroke="#08117F" stroke-width="3"
+            stroke-linejoin="round" />
+          <g font-family="'Arial Black','Arial Bold',Arial,Helvetica,sans-serif" font-weight="bold" fill="#0F1FBE">
+            <text font-size="27" letter-spacing="1">
+              <textPath href="#adrArcHaut" xlink:href="#adrArcHaut" startOffset="50%"
+                text-anchor="middle">A.D.R.A.S.E.C</textPath>
+            </text>
+            <text font-size="26" letter-spacing="1.5">
+              <textPath href="#adrArcBas" xlink:href="#adrArcBas" startOffset="50%"
+                text-anchor="middle">SECURITE CIVILE</textPath>
+            </text>
+          </g>
+        </svg>
+      </div>
+      <div class="center">
+        <h1>Accuse de reception
+          <a href="#" id="help-link" title="Afficher l'aide en ligne">&#9432;</a>
+        </h1>
+      </div>
+    </div>
+
+    <div class="main-content">
+
+      <!-- ================= LECTURE (View Form) ================= -->
+      <section id="viewSection" style="display:none;">
+
+        <div class="grid-container">
+          <div class="form-group">
+            <span class="type-banner">ACCUSE DE RECEPTION</span>
+            <div id="d_vReference" class="reference"></div>
+          </div>
+        </div>
+
+        <div class="grid-container3">
+          <div class="form-group">
+            <label>N&deg; de l'AR</label>
+            <span id="d_vNumero" class="code-block"></span>
+          </div>
+
+          <div class="form-group">
+            <label>Priorite</label>
+            <span id="d_Priority" class="code-block"></span>
+          </div>
+
+          <div class="form-group"></div>
+        </div>
+
+        <div class="grid-container3">
+          <div class="form-group">
+            <label>Date</label>
+            <span id="d_vDate" class="code-block"></span>
+          </div>
+
+          <div class="form-group">
+            <label>Heure</label>
+            <span id="d_vHeure" class="code-block"></span>
+          </div>
+
+          <div class="form-group"></div>
+        </div>
+
+        <hr>
+
+        <div class="grid-container2">
+          <div class="form-group">
+            <label>Origine</label>
+            <span id="d_vOrigine" class="code-block"></span>
+          </div>
+
+          <div class="form-group">
+            <label>Destinataire</label>
+            <span id="d_vTo" class="code-block"></span>
+          </div>
+        </div>
+
+        <div class="grid-container">
+          <div class="form-group">
+            <label>Reference du message accuse</label>
+            <span id="d_vRef" class="code-block"></span>
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="grid-container">
+          <div class="form-group">
+            <label>Commentaire</label>
+            <pre id="d_vCommentaire" class="code-block"></pre>
+          </div>
+        </div>
+
+        <div class="form-group button no-print">
+          <button id="printPageButton" type="button" onclick="window.print()">Imprimer</button>
+        </div>
+
+      </section>
+
+      <!-- ================= SAISIE (Edit Form) ================= -->
+      <section id="formSection">
+        <form id="ADRASECARForm" onsubmit="return onSubmit();">
+
+          <div id="avisPreRempli" class="info" style="display:none;"></div>
+
+          <!-- N&deg; de l'AR / Priorite -->
+          <div class="grid-container3">
+            <div class="form-group">
+              <label for="vNumero">N&deg; de l'AR</label>
+              <div style="display: flex; gap: 4px; align-items: center;">
+                <span style="font-weight: bold; color: #004085;">AR /</span>
+                <input type="text" name="vNumero" id="vNumero" title="Numero du message accuse, modifiable"
+                  size="8" maxlength="20" style="color: red;" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Priorite</label>
+              <div class="radio-group">
+                <div class="red">
+                  <input type="radio" name="Priority" id="prioImmediat" value="IMMEDIAT">
+                  <span>Immediat</span>
+                </div>
+                <div class="orange">
+                  <input type="radio" name="Priority" id="prioUrgent" value="URGENT">
+                  <span>Urgent</span>
+                </div>
+                <div class="green">
+                  <input type="radio" name="Priority" id="prioRoutine" value="ROUTINE">
+                  <span>Routine</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group"></div>
+          </div>
+
+          <!-- Date / Heure locales -->
+          <div class="grid-container2">
+            <div class="form-group">
+              <label for="vDate">Date</label>
+              <input type="text" name="vDate" id="vDate" placeholder="AAAA-MM-JJ"
+                title="Date de l'accuse de reception" required>
+            </div>
+
+            <div class="form-group">
+              <label for="vHeure">Heure locale</label>
+              <input type="text" name="vHeure" id="vHeure" placeholder="HH:MM" title="Heure locale" required>
+            </div>
+          </div>
+
+          <div class="spacer"></div>
+          <hr>
+
+          <!-- Origine / Destinataire -->
+          <div class="grid-container2">
+            <div class="form-group">
+              <label for="vOrigine">Origine</label>
+              <input type="text" name="vOrigine" id="vOrigine" title="Indicatif de la station qui accuse reception"
+                placeholder="Votre indicatif" size="20" maxlength="20" class="bg-yellow" required>
+            </div>
+
+            <div class="form-group">
+              <label for="vTo">Destinataire</label>
+              <input type="text" name="vTo" id="vTo" title="Indicatif de la station qui a emis le message accuse"
+                placeholder="Station qui a emis le message accuse" size="100" maxlength="100" class="bg-yellow"
+                required>
+            </div>
+          </div>
+
+          <!-- Reference du message accuse -->
+          <div class="grid-container">
+            <div class="form-group">
+              <label for="vRef">Reference du message accuse</label>
+              <textarea name="vRef" id="vRef"
+                placeholder="Ex : [ROUTINE][AMBIANCE/12] MESSAGE D'AMBIANCE du 2026-10-28 14:30 (LOC)"
+                title="Reference du message recu" rows="1" required
+                onkeyup="AutoGrowTextArea(this)"></textarea>
+            </div>
+          </div>
+
+          <!-- Commentaire -->
+          <div class="grid-container">
+            <div class="form-group">
+              <label for="vCommentaire">Commentaire</label>
+              <textarea name="vCommentaire" id="vCommentaire"
+                placeholder="Ex : Message bien recu et transmis au COD a 14h40. 73"
+                title="Commentaire libre" rows="7" required
+                onkeyup="AutoGrowTextArea(this)"></textarea>
+            </div>
+          </div>
+
+        </form>
+      </section>
+
+    </div>
+
+    <div class="footer no-print">
+      <span id="version" class="footer-text">ADRASEC - AR v1.1.0</span>
+      <span id="brand" class="adrasec-text">ADRASEC</span>
+      <span id="projectLink" class="footer-text">FLmsg Custom Form</span>
+    </div>
+
+  </div>
+
+  <!-- Panneau d'aide -->
+  <div id="help-panel" class="help-panel no-print">
+    <div class="help-container">
+      <button id="close-btn" class="close-btn" type="button">Fermer</button>
+      <div class="help-content">
+        <h2>Accuse de reception</h2>
+
+        <div class="info">
+          Pour pre-remplir ce formulaire, ouvrez d'abord le message recu dans FLmsg
+          (View Form) et cliquez sur <b>Preparer l'accuse de reception</b>. Le numero,
+          le destinataire et la reference sont alors repris ici.
+        </div>
+
+        <h3>Champs pre-remplis</h3>
+        <ul>
+          <li><b>N&deg; de l'AR</b> : numero du message accuse. Modifiable.</li>
+          <li><b>Date / Heure</b> : instant de l'accuse, en heure locale.</li>
+          <li><b>Origine</b> : votre indicatif, memorise d'un envoi a l'autre.</li>
+          <li><b>Destinataire</b> : la station qui a emis le message accuse.</li>
+          <li><b>Reference</b> : priorite, type, numero et sujet du message recu.</li>
+        </ul>
+
+        <p>Si la page du message a ete ouverte hors de FLmsg (fichier local), la
+          reference est seulement copiee : collez-la (Ctrl+V) dans le champ Reference.</p>
+
+        <h3>Champs a saisir</h3>
+        <ul>
+          <li><b>Priorite</b> : en principe Routine, sauf si l'accuse lui-meme est urgent.</li>
+          <li><b>Commentaire</b> : ce que vous avez fait du message. Une remise a l'autorite
+            destinataire se mentionne ici, avec son heure.</li>
+        </ul>
+
+        <h3>Envoi avec FLmsg</h3>
+        <ol>
+          <li>Cliquez sur <b>Transmettre a FLmsg</b> en bas du formulaire.</li>
+          <li>Enregistrez l'accuse dans FLmsg (fichier .k2s).</li>
+          <li>Cliquez sur <b>AutoSend</b> : fldigi transmet l'accuse.</li>
+        </ol>
+
+        <div class="warning">
+          FLmsg n'envoie aucune confirmation automatique : seul cet accuse confirme la
+          prise en compte du message par l'operateur. Les accents sont convertis en
+          ASCII a l'envoi.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>

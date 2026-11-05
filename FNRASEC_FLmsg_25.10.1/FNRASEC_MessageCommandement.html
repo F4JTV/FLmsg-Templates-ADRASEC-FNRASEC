@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+
+<!--
+--------------------------------------------------------------------------
+-- Formulaire FLmsg FNRASEC - Message de commandement
+--
+-- Portage pour FLmsg / fldigi des modeles Winlink FNRASEC 25.10.1
+-- (https://github.com/jlzola/fnrasec-winlink-template).
+-- Modeles d'origine : F4IXH Jean-Louis ZOLA, F1COB Jean-Michel BROCAL.
+-- Copyright (c) 2025 Monext - Jean-Louis Zola - Licence MIT (voir LICENSE).
+--
+-- Un seul fichier sert a la saisie (Edit Form) et a la lecture
+-- (View Form) : FLmsg y injecte les valeurs du message.
+-- A placer dans le dossier CUSTOM de FLmsg, chez l'emetteur ET chez
+-- le destinataire, sous ce nom exact : FNRASEC_MessageCommandement.html
+--
+-- Contraintes de l'analyseur FLmsg (custom.cxx) a respecter en cas
+-- de modification :
+--  - tout le code JavaScript reste dans l'en-tete du document, car
+--    FLmsg passe en majuscules certains mots-cles du corps ;
+--  - chaque champ declare son type (text, radio) ;
+--  - l'attribut name precede toujours un eventuel attribut value ;
+--  - aucune case a cocher nommee : elle alimente un champ texte masque ;
+--  - tout champ nomme doit figurer dans l'envoi : jamais de champ
+--    desactive, ni de groupe radio sans valeur ;
+--  - aucune valeur par defaut dans le code HTML (bouton radio coche,
+--    option preselectionnee) : FLmsg la conserverait en lecture a cote
+--    de la valeur recue. Les valeurs par defaut sont posees en
+--    JavaScript a la saisie ;
+--  - pas d'action, de methode ni d'encodage sur le formulaire, et pas
+--    de bouton d'envoi : FLmsg fournit les siens ;
+--  - aucun chevron dans les attributs des champs ;
+--  - aucun attribut egal a un nom de type de champ (Date, Time,
+--    DateTime, Text, Number...) : FLmsg le passerait en majuscules.
+--    Le champ DateTime des modeles Winlink s'appelle ici vDateHeure.
+--------------------------------------------------------------------------
+-->
+
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <META NAME="EDITABLE" CONTENT="true">
+  <META NAME="MENU_ITEM" CONTENT="FNRASEC Message de commandement">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="F4IXH Jean-Louis Zola - F1COB Jean-Michel Brocal">
+  <meta name="version" content="25.10.1">
+  <meta name="description" content="Formulaire FLmsg pour la FNRASEC">
+  <title>FNRASEC Message de commandement</title>
+
+  <style>
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 10px;
+  padding: 0px;
+  display: flex;
+  justify-content: left;
+  align-items: top;
+  background-color: #f0f2f5;
+  color: #333;
+}
+
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+hr {
+  border: none;
+  border-top-width: 1px;
+  border-top-color: #333;
+  border-top-style: dotted;
+}
+
+pre {
+  margin: 0;
+}
+
+
+/* input[type="checkbox"] {
+  width: 20px; 
+  height: 20px; 
+  margin-right: 8px; 
+  margin-top: 0;
+} */
+
+ input[type="radio"] {
+  transform: scale(1.3);
+  margin-right: 5px;
+  margin-top: 0; 
+} 
+
+
+/* container / main / grid / media */ 
+
+.spacer {
+  margin-top: 18px;
+  margin-bottom: 18px;
+}
+
+.container {
+  background-color: #ffffff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 850px;
+}
+
+.main-content {
+  padding: 0;  
+  min-height: 60vh;
+} 
+
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.grid-container2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.grid-container3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+@media print {
+  
+  @page {
+    margin: 0; /* Supprime les marges par d&#233;faut */
+    /* Espace r&#233;serv&#233; pour le pied de page */    
+    /* margin-bottom: 50px;  */
+  }
+
+  body {
+    padding: 10px; 
+  }
+
+  .no-print, .no-print * {
+    display: none !important; /* Cache les &#233;l&#233;ments avec la classe .no-print */
+  }
+
+  .container {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    width: 100%;
+    max-width: none;
+  }
+  
+  #printPageButton {
+    display: none;
+  }
+}
+
+
+@media (max-width: 600px) {
+
+  .grid-container, .grid-container2, .grid-container3 {
+    grid-template-columns: 1fr;
+  }
+  
+  .header {
+    grid-template-columns: 1fr 3fr!important;
+  }
+
+  .header div.right {
+    display: none;
+    width: 0;
+  }
+}
+
+/* header */ 
+
+.header {
+  text-align: left;
+  margin-bottom: 1.3rem;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+}
+
+.header div.left {
+  text-align: left;    
+}
+
+.header div.center {
+  text-align: center;    
+}
+
+.header div.right {
+  text-align: right;    
+}
+
+.header img {
+  max-height: 110px;
+  width: auto;
+}
+
+.header h1 {
+  font-size: 1.5em;
+  margin: 1.5em;
+  margin-bottom: 0.8rem;
+  text-align: center;
+}
+
+.header h1 img {
+  max-height: 25px;
+  width: auto;
+  translate: 0 5px;
+}
+
+
+
+
+/* form */ 
+
+.form-group {
+  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+  color: #333;
+  font-size: 0.875rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 0.875rem;
+}
+
+.form-group textarea {
+  min-width: 100%;
+}
+
+.form-group select {
+  padding: 0.3rem;
+  margin-bottom: 0;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.form-group input.bg-yellow, 
+.form-group select.bg-yellow {
+  background-color: lightyellow;
+}
+
+.form-group input.bg-green  {
+  background-color: lightgreen;
+}
+
+
+.radio-group {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Espace entre les &#233;l&#233;ments */
+  padding-top: 8px;
+}
+
+.radio-group div {
+  display: flex;
+  align-items: center;
+  gap: 3px; /* Espace entre le bouton radio et le texte */
+}
+
+.radio-group span {
+  font-weight: bold;  
+  /* padding-top: 3px; */
+  font-size: 0.875rem;
+}
+.radio-group .red {
+  color: red;
+}
+
+.radio-group .orange {
+  color: orange;
+}
+
+.radio-group .green {
+  color: green;
+}
+
+.button {
+  display: flex; 
+  justify-content: center; 
+  margin: 20px;
+} 
+
+.form-group button {
+  padding: 0.5rem 1rem;
+  background-color: #007bff;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-size: 0.875rem;
+}
+
+.form-group button:hover {
+  background-color: #0056b3;
+}
+
+
+.value-text {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  color: #007bff;
+}
+
+
+
+/* footer */
+
+.footer {
+  width: 100%;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-text {
+  text-align: center;
+  font-style: italic;
+  margin-top: 0.5rem;
+  color: #777;
+  font-size: 0.75rem;
+}
+
+.fnrasec-text {
+  text-align: center;
+  font-style: normal;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  color: #777;
+  font-size: 0.75rem;
+}
+
+
+/* help */
+
+.help-panel {
+  width: 30%;
+  min-width: 300px;
+  padding: 0;
+  margin: 0;  
+  background-color: #f4f4f9;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 0.3s;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+
+.help-container {
+  padding: 20px;
+}
+
+.help-panel.active {
+  transform: translateX(0);
+}
+
+div.help-content {
+  color: #333;
+  margin-top: 30px;
+}
+
+.help-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.help-panel li {
+  margin-bottom: 10px;
+}
+
+.help-panel .info {
+  margin-top: 40px;
+  font-size: 1.0rem;
+  font-weight: bold;
+  font-style: italic;
+  color: #666;
+}
+
+.help-panel .version {
+  font-size: 0.8rem;
+  font-style: italic;
+  color: #666;
+}
+
+.help-panel img#close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  max-height: 23px;
+  width: auto;
+
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  float: left;
+  margin: 0;
+  padding: 0;
+}
+
+
+
+.warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+}
+
+.info {
+    background-color: #cfe2ff;
+    border: 1px solid #b6d4fe;
+    color: #004085;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+}
+
+.note {
+  background-color: #f3e5f5;
+  border: 1px solid #ce93d8;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+}
+
+.success {
+  background-color: #dff0d8;
+  border: 1px solid #d6e9c6;
+  color: #3c763d;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.code-block {
+  /* background-color: #f5f5f5; */
+  /* border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 16px; */
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  /* color: #007bff; */
+  color: #333;
+  line-height: 1.4;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  /* Permet les retours &#224; la ligne */
+  word-wrap: break-word;
+  /* G&#232;re les mots longs */
+  width: 100%;
+  /* Largeur maximale */
+  width: 100%;
+  /* Largeur fluide */
+  box-sizing: border-box;
+  /* Inclut le padding et la bordure dans la largeur */
+}
+
+/* ---- FLmsg port additions ---- */
+
+.masque { display: none !important; }
+
+.form-group .radio-group input { width: auto; flex: 0 0 auto; }
+
+.form-group button.secondaire { background-color: #6c757d; }
+.form-group button.secondaire:hover { background-color: #545b62; }
+.form-group button.secondaire.demande { background-color: #d95e00; }
+.form-group button.secondaire.demande:hover { background-color: #b34d00; }
+
+/* Bouton d'envoi ajoute par FLmsg en fin de formulaire */
+form.flmsg input[type="submit"] {
+  display: block;
+  width: auto;
+  margin: 20px auto;
+  padding: 0.5rem 1rem;
+  background-color: #007bff;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+form.flmsg input[type="submit"]:hover { background-color: #0056b3; }
+
+.reference {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  color: #555;
+  word-wrap: break-word;
+  margin-bottom: 0.5rem;
+}
+
+.avis-ar {
+  background-color: #cfe2ff;
+  border: 1px solid #b6d4fe;
+  color: #004085;
+  padding: 0.75rem 1rem;
+  margin: 0 20px 1rem 20px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+/* ---- Liste des indicatifs ---- */
+
+  .indicatifs-table {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: 0 auto 20px auto;
+  }
+
+  .indicatifs-table table {
+    width: 100%;
+    max-width: 250px;
+    border-collapse: collapse;
+    margin: 0 auto;
+  }
+
+  .indicatifs-table th,
+  .indicatifs-table td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center;
+    width: 50%;
+  }
+
+  .indicatifs-table th {
+    background-color: #f2f2f2;
+  }
+
+  .indicatifs-table .highlight {
+    background-color: lightyellow;
+  }
+
+  .indicatifs-table .green {
+    background-color: lightgreen;
+  }
+
+
+  .indicatifs-table .pink {
+    background-color: pink;
+  }
+
+  </style>
+
+  <script type="text/javascript">
+
+    //==================================================================
+    // Fonctions communes aux formulaires FNRASEC pour FLmsg
+    //==================================================================
+
+    // Cles du stockage local du navigateur (origine du serveur FLmsg)
+    var CLE_STATION = "fnrasec.indicatifStation";
+    var CLE_OPER = "fnrasec.indicatifOperateur";
+    var CLE_LIEU = "fnrasec.origineNumero";
+    var CLE_NUMERO = "fnrasec.dernierNumero";
+    var CLE_AR = "fnrasec.arEnAttente";
+
+    // Duree de validite d'une reference d'AR preparee (24 heures)
+    var VALIDITE_AR_MS = 24 * 3600 * 1000;
+
+    function el(id) { return document.getElementById(id); }
+
+    function val(id) {
+      var e = el(id);
+      return e ? e.value : "";
+    }
+
+    function stockageDisponible() {
+      try {
+        var t = "fnrasec.test";
+        window.localStorage.setItem(t, t);
+        window.localStorage.removeItem(t);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function lireStockage(cle) {
+      try { return window.localStorage.getItem(cle); } catch (e) { return null; }
+    }
+
+    function ecrireStockage(cle, valeur) {
+      try { window.localStorage.setItem(cle, valeur); } catch (e) { }
+    }
+
+    function supprimerStockage(cle) {
+      try { window.localStorage.removeItem(cle); } catch (e) { }
+    }
+
+    // Agrandissement automatique des zones de saisie (CommonFunctions.js)
+    function AutoGrowTextArea(textField) {
+      if (textField.clientHeight < textField.scrollHeight) {
+        textField.style.height = textField.scrollHeight + "px";
+        if (textField.clientHeight < textField.scrollHeight) {
+          textField.style.height = (textField.scrollHeight * 2 - textField.clientHeight) + "px";
+        }
+      }
+    }
+
+    function agrandirZones() {
+      var zones = document.getElementsByTagName("textarea");
+      for (var i = 0; i < zones.length; i++) AutoGrowTextArea(zones[i]);
+    }
+
+    // Date et heure, bascule UTC / locale (CommonFunctions.js)
+    function SetDateToUTC() {
+      var CurrentDate = new Date();
+      if (el("BtnDate").innerHTML == "UTC") {
+        el("vDateHeure").value = CurrentDate.getUTCFullYear() + '-' +
+          ('0' + (CurrentDate.getUTCMonth() + 1)).slice(-2) + '-' +
+          ('0' + CurrentDate.getUTCDate()).slice(-2) + ' ' +
+          ('0' + CurrentDate.getUTCHours()).slice(-2) + ':' +
+          ('0' + CurrentDate.getUTCMinutes()).slice(-2) + ':' +
+          ('0' + CurrentDate.getUTCSeconds()).slice(-2) + ' (UTC)';
+        el("BtnDate").innerHTML = "Locale";
+      } else {
+        el("vDateHeure").value = CurrentDate.getFullYear() + '-' +
+          ('0' + (CurrentDate.getMonth() + 1)).slice(-2) + '-' +
+          ('0' + CurrentDate.getDate()).slice(-2) + ' ' +
+          ('0' + CurrentDate.getHours()).slice(-2) + ':' +
+          ('0' + CurrentDate.getMinutes()).slice(-2) + ':' +
+          ('0' + CurrentDate.getSeconds()).slice(-2) + ' (LOC)';
+        el("BtnDate").innerHTML = "UTC";
+      }
+    }
+
+    // Date existante conservee : le bouton propose l'autre format
+    function initDateHeure() {
+      if (!val("vDateHeure")) {
+        SetDateToUTC();
+      } else {
+        el("BtnDate").innerHTML = (val("vDateHeure").indexOf("(UTC)") >= 0) ? "Locale" : "UTC";
+      }
+    }
+
+    // Conversion en ASCII 7 bits : les modes numeriques de fldigi
+    // (MT63, Olivia, Contestia...) ne transmettent pas toujours les
+    // caracteres accentues.
+    function versAscii(texte) {
+      var t = String(texte);
+      t = t.replace(/[\u2018\u2019\u201A\u2032\u00B4]/g, "'");
+      t = t.replace(/[\u201C\u201D\u201E\u2033\u00AB\u00BB]/g, '"');
+      t = t.replace(/[\u2010-\u2015\u2212]/g, "-");
+      t = t.replace(/\u2026/g, "...");
+      t = t.replace(/[\u00A0\u2007\u202F]/g, " ");
+      t = t.replace(/\u20AC/g, "EUR");
+      t = t.replace(/\u00B0/g, " ");
+      t = t.replace(/\u0152/g, "OE").replace(/\u0153/g, "oe");
+      t = t.replace(/\u00C6/g, "AE").replace(/\u00E6/g, "ae");
+      t = t.replace(/\u00DF/g, "ss");
+      if (t.normalize) t = t.normalize("NFD").replace(/[\u0300-\u036F]/g, "");
+      return t.replace(/[^\t\n\r\x20-\x7E]/g, "?");
+    }
+
+    function convertirChamps(ids) {
+      for (var i = 0; i < ids.length; i++) {
+        var champ = el(ids[i]);
+        champ.value = versAscii(champ.value);
+      }
+    }
+
+    function getRadioValue(nom) {
+      var radios = document.getElementsByName(nom);
+      for (var i = 0; i < radios.length; i++) {
+        if (radios[i].checked) return radios[i].value;
+      }
+      return "";
+    }
+
+    function afficher(id, texte) {
+      el(id).textContent = texte;
+    }
+
+    // Indicatifs memorises d'un formulaire a l'autre
+    function restaurerIndicatifs() {
+      if (!val("msgSender")) el("msgSender").value = lireStockage(CLE_STATION) || "";
+      if (!val("vOper")) el("vOper").value = lireStockage(CLE_OPER) || "";
+    }
+
+    function memoriserIndicatifs() {
+      if (val("msgSender")) ecrireStockage(CLE_STATION, val("msgSender"));
+      if (val("vOper")) ecrireStockage(CLE_OPER, val("vOper"));
+    }
+
+    function initAide() {
+      el('help-link').addEventListener('click', function (event) {
+        event.preventDefault();
+        el('help-panel').classList.add('active');
+      });
+      el('close-btn').addEventListener('click', function () {
+        el('help-panel').classList.remove('active');
+      });
+    }
+
+    // Bouton d'envoi ajoute par FLmsg
+    function libellerEnvoi() {
+      var envoi = document.querySelector('form.flmsg input[type="submit"]');
+      if (envoi) envoi.value = "Transmettre \u00E0 FLmsg";
+    }
+
+    function basculerLecture() {
+      el("formSection").style.display = "none";
+      el("viewSection").style.display = "";
+      el("help-link").style.display = "none";
+    }
+
+    // FLmsg rend les champs non modifiables en mode lecture (View Form)
+    function init() {
+      if (el("SeqNum").readOnly) {
+        basculerLecture();
+        initLecture();
+      } else {
+        initAide();
+        initSaisie();
+        agrandirZones();
+        libellerEnvoi();
+      }
+    }
+
+    //==================================================================
+    // En-tete commun des messages (hors AR)
+    //==================================================================
+    var CHAMPS_ENTETE = ["SeqNum", "vDateHeure", "msgSender", "vOper", "vOrigine", "vTo", "vDestination"];
+
+    // Numero propose : compteur local (equivalent du {SeqNum} Winlink)
+    function proposerNumero() {
+      if (val("SeqNum")) return;
+      var dernier = parseInt(lireStockage(CLE_NUMERO), 10);
+      if (!isNaN(dernier)) el("SeqNum").value = String(dernier + 1);
+    }
+
+    function memoriserNumero() {
+      var numero = val("SeqNum");
+      if (val("vLieu")) ecrireStockage(CLE_LIEU, val("vLieu"));
+      if (!/^[0-9]+$/.test(numero)) return;
+      var dernier = parseInt(lireStockage(CLE_NUMERO), 10);
+      var n = parseInt(numero, 10);
+      if (isNaN(dernier) || n > dernier) ecrireStockage(CLE_NUMERO, String(n));
+    }
+
+    function initEntete() {
+      // Valeurs par defaut posees ici et non dans le code HTML : FLmsg
+      // les conserverait en lecture, a cote de la valeur recue.
+      if (!getRadioValue("Priority")) el("prioRoutine").checked = true;
+      if (!getRadioValue("vConfid")) el("confNormal").checked = true;
+      if (!val("vLieu")) el("vLieu").value = lireStockage(CLE_LIEU) || "RASEC";
+      if (!val("vLieu")) el("vLieu").value = "RASEC";
+      el("cbDemRep").checked = (val("Dem_Rep") === "Oui");
+      initDateHeure();
+      restaurerIndicatifs();
+      proposerNumero();
+    }
+
+    function avantEnvoiEntete() {
+      el("Dem_Rep").value = el("cbDemRep").checked ? "Oui" : "";
+      convertirChamps(CHAMPS_ENTETE);
+      memoriserIndicatifs();
+      memoriserNumero();
+    }
+
+    function confirmerEnvoi() {
+      var avis = 'Les donn\u00E9es vont \u00EAtre transmises \u00E0 FLmsg.\n\n'
+               + 'Enregistrez ensuite le message dans FLmsg, puis envoyez-le\n'
+               + 'avec AutoSend.';
+      if (el("cbDemRep").checked) {
+        avis = 'ACCUS\u00C9 DE R\u00C9CEPTION DEMAND\u00C9\n\n'
+             + 'FLmsg ne g\u00E8re pas les accus\u00E9s automatiques : la station\n'
+             + 'destinataire r\u00E9pondra avec le formulaire FNRASEC Accus\u00E9 de r\u00E9ception.\n\n'
+             + avis;
+      }
+      return confirm(avis);
+    }
+
+    // Equivalent du sujet Winlink : [PRIORITE][ORIGINE/N] sujet
+    function referenceMessage() {
+      return "[" + getRadioValue("Priority") + "][" + val("vLieu") + "/" + val("SeqNum") + "] " + sujetMessage();
+    }
+
+    function lectureEntete() {
+      afficher("d_vReference", referenceMessage());
+      afficher("d_vNumero", val("vLieu") + "/" + val("SeqNum"));
+      afficher("d_Priority", getRadioValue("Priority"));
+      afficher("d_vConfid", getRadioValue("vConfid"));
+      afficher("d_DateTime", val("vDateHeure"));
+      afficher("d_Dem_Rep", val("Dem_Rep") === "Oui" ? "OUI" : "NON");
+      afficher("d_msgSender", val("msgSender"));
+      afficher("d_vOper", val("vOper"));
+      afficher("d_vOrigine", val("vOrigine"));
+      afficher("d_vTo", val("vTo"));
+      afficher("d_vDestination", val("vDestination"));
+
+      var bouton = el("btnPreparerAR");
+      if (val("Dem_Rep") === "Oui") bouton.className = "secondaire demande";
+      bouton.addEventListener("click", preparerAR);
+    }
+
+    //==================================================================
+    // Preparation de l'accuse de reception (remplace le ReplyTemplate
+    // Winlink : FLmsg ne transmet aucune donnee au formulaire de reponse)
+    //==================================================================
+    function copierTexte(texte, suite) {
+      function repli() {
+        var ok = false;
+        try {
+          var zone = document.createElement("textarea");
+          zone.value = texte;
+          zone.style.position = "fixed";
+          zone.style.opacity = "0";
+          document.body.appendChild(zone);
+          zone.select();
+          ok = document.execCommand("copy");
+          document.body.removeChild(zone);
+        } catch (e) {
+          ok = false;
+        }
+        suite(ok);
+      }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(texte).then(function () { suite(true); }, repli);
+      } else {
+        repli();
+      }
+    }
+
+    function preparerAR() {
+      var ar = {
+        num: val("vLieu") + "/" + val("SeqNum"),
+        to: val("msgSender"),
+        orig: val("vOrigine"),
+        dest: val("vDestination"),
+        ref: referenceMessage(),
+        t: new Date().getTime()
+      };
+
+      // Le stockage n'est partage avec le formulaire AR que si la page
+      // est servie par FLmsg (adresse http://127.0.0.1)
+      var partage = (window.location.protocol.indexOf("http") === 0) && stockageDisponible();
+      if (partage) ecrireStockage(CLE_AR, JSON.stringify(ar));
+
+      copierTexte("AR: " + ar.ref, function (copie) {
+        var texte;
+        if (partage) {
+          texte = "Ouvrez maintenant le formulaire FNRASEC Accus\u00E9 de r\u00E9ception dans FLmsg "
+                + "(Edit Form) : le num\u00E9ro, le destinataire, les autorit\u00E9s et le sujet "
+                + "seront pr\u00E9-remplis.";
+          if (copie) texte += " Le sujet est aussi copi\u00E9 dans le presse-papiers.";
+        } else if (copie) {
+          texte = "Sujet copi\u00E9 dans le presse-papiers. Ouvrez le formulaire FNRASEC "
+                + "Accus\u00E9 de r\u00E9ception dans FLmsg et collez-le (Ctrl+V) dans le champ Sujet ; "
+                + "destinataire : " + ar.to + ", N\u00B0 : " + ar.num + ".";
+        } else {
+          texte = "Sujet \u00E0 recopier dans le formulaire FNRASEC Accus\u00E9 de r\u00E9ception : AR: " + ar.ref
+                + " (destinataire : " + ar.to + ", N\u00B0 : " + ar.num + ").";
+        }
+        var avis = el("avisAR");
+        avis.textContent = texte;
+        avis.style.display = "";
+      });
+    }
+
+    //==================================================================
+    // Message standard
+    //==================================================================
+    function sujetMessage() { return val("vSubject"); }
+
+    function initSaisie() {
+      initEntete();
+    }
+
+    function onSubmit() {
+      if (!confirmerEnvoi()) return false;
+      avantEnvoiEntete();
+      convertirChamps(["vSubject", "vMessage"]);
+      return true;
+    }
+
+    function initLecture() {
+      lectureEntete();
+      afficher("d_vSubject", val("vSubject"));
+      afficher("d_vMessage", val("vMessage"));
+    }
+
+  </script>
+
+</head>
+
+<body onload="init()">
+  <div class="container">
+
+    <div class="header">
+      <div class="left">
+        <img src="data:image/png;base64,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" alt="Logo FNRASEC">
+      </div>
+      <div class="center">
+        <h1>Message de commandement <a href="#" id="help-link"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48IS0tIUZvbnQgQXdlc29tZSBGcmVlIDYuNy4yIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlL2ZyZWUgQ29weXJpZ2h0IDIwMjUgRm9udGljb25zLCBJbmMuLS0+PHBhdGggZmlsbD0iIzAwN2JmZiIgZD0iTTI1NiA1MTJBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyek0xNjkuOCAxNjUuM2M3LjktMjIuMyAyOS4xLTM3LjMgNTIuOC0zNy4zbDU4LjMgMGMzNC45IDAgNjMuMSAyOC4zIDYzLjEgNjMuMWMwIDIyLjYtMTIuMSA0My41LTMxLjcgNTQuOEwyODAgMjY0LjRjLS4yIDEzLTEwLjkgMjMuNi0yNCAyMy42Yy0xMy4zIDAtMjQtMTAuNy0yNC0yNGwwLTEzLjVjMC04LjYgNC42LTE2LjUgMTIuMS0yMC44bDQ0LjMtMjUuNGM0LjctMi43IDcuNi03LjcgNy42LTEzLjFjMC04LjQtNi44LTE1LjEtMTUuMS0xNS4xbC01OC4zIDBjLTMuNCAwLTYuNCAyLjEtNy41IDUuM2wtLjQgMS4yYy00LjQgMTIuNS0xOC4yIDE5LTMwLjYgMTQuNnMtMTktMTguMi0xNC42LTMwLjZsLjQtMS4yek0yMjQgMzUyYTMyIDMyIDAgMSAxIDY0IDAgMzIgMzIgMCAxIDEgLTY0IDB6Ii8+PC9zdmc+"
+              alt="Voir l'aide en ligne" title="Afficher l'aide en ligne"></a></h1>
+      </div>
+      <div class="right">
+        <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCADEAMEDASIAAhEBAxEB/8QAHQAAAQQDAQEAAAAAAAAAAAAAAAQFBgcCAwgBCf/EAEoQAAEDAwICBgUJBAYJBQAAAAEAAgMEBREGIRIxB0FRYXGRCBMUIoEVIzJCUqGxwdFVYoKTJDNDcqLhFhc0NWODkrLwU1SjwvH/xAAcAQABBAMBAAAAAAAAAAAAAAAAAwQFBgECBwj/xAAzEQABAwEGAgoBBAMBAAAAAAABAAIDBAUREiExQQZRExQiUmFxgZGhwTIHsdHhJDPwYv/aAAwDAQACEQMRAD8A7LQhCEIQhCEIQhCEIQhCEIQg8l5nfqQheoPcvCfDKatWOc3TlwewlrmwOIc04I2QhOoPcjJ7CoxbdOQOo4J2XK6xSPja5xbVHBJaDyKcI7bcYP6m8zPA+rNGHffzQhPA5ITY2e4w7TQRT98buE+RSiGthkIa7iif9l4whZuStCPihCwhCEIQhCEIQhCEIQhCEIQhCEIQhCEIQhCDyWLjgZPJCF6tc00UEZfNI1jRzJOFGNT6zobXmnge2apxybuAoky4XO81AfJ6x/EfdaN0uyBzhecgk3SAG4Kc1OpIOIso4XTkfWJ4WpP7ZeKvcVkdM0/Vii4j5lI7ZYbm9uXBlOO2Tc+Sd4tOxEf0mtqpe5ruBvkFqcDdM1kYikZt8bxmtvVaT2OqAweQWt9q0w8Fk9xL8jBD68nPwynaPT1mZzoInntflx+9bPkOzkY+S6MjvhaUmSsrbR1dvEUcFNWU72saGta2VrjgbdqV5HMDPgmt+m7E85NqpQe1rA38Fiyw0sJzSzVNMergmJHkVhbJyfy60iqAHZyF6ILjEPdnZUt/fbwuWqSU8pY3Qu7HDn4LBS0ZF60trJKY7HLOw7pyoq+CqADHAO+yeaZKrBB2TNVSSRPMkTi1w5EHktC65PW0jZRlkVP85QT2qKWLVEUj20lc4RynZrzyd4qUtcCBgg5GVuHAplNA+F2F4WaEIWUihCEIQhCEIQhCEIQhCDyWLicIQsJHtYwvcQ1rRkk8sKoekHpJfUVzrBpdxlnJ4JJWDOD2DHWmvpm6QK25XoaD0eXTVkruCqmiOzO1oI5bHcqY9FfRzR6XoWVFc1lRcnty95Gze4KQZEynYJJdToPspq6R0jsDNNymzRegKucNr73IQ554ixxyT49qsy326jt8IjpYGRgDnjdKsY3A7kmuNdT0MBmqH4AHIDJKaSSvldeUs1jWBKevATRftS2OxML7rc6WlGMhrn5ef4Ruq11trO+VjzSWwvpInbYiOZX+Lhy+CrC5293r3Or6oMlduWkl8h8f81l7I4G4pnhoWIenqn4KdhcVbl46cdMUji2horhcCOTgwRNPxcc/co7P6QMpPzGl2tH/ABKzP4NVaG3UhORE52OXEUOoKSNhkkjY1jQXOcdsAc1GOtyga7CxpcVPx8L2g9uKR4YrHj9ICqz85pmEjsbVkH/tTva+nqyzPDbhY6+kzzdE9soH/aVS1ldbbxQe10sQLOIsII3aR/4D8Uofa4M5a0sI6wUPtujjeYpWFrhqt28LVkkYkhla4HTXP4XTmn9f6UvzmsoLzCJnbCGfMT89mHYz8MqTODXDDgHA9S49ipTAdt29+6sLQmrrza3Rw09a6enHOnmJe0DuzuPgn0MtLVC+B955HIqGq6KtoD/kRkDmMwrxrLa17SYTh3YeSil4gkgJErMd5Uh05qGku8LRj1M+N43HOf7p6053CjgrIXRzNG4xxdYWr4zoUtSVmAg6hVBddgS3mnnQ2txBUstV2k+bceGGdx5dxSXWFqntcxa8ZiduyTq//VXd7y3icBnO+QeSaOcWG8K6wUkNow4TodDyXTjCHNBBBB5HtXoCqToZ157c8abusp9qYP6PI87yNHV4q2m4I/yTpjw8XhUyvoZaGYxSa/uOazQhC2TNCEIQhCEIQheO5Ks+nvXjtI6aFHbfnLzcj6mkjbzGduJWLW1EdNTSVEzwyKJpe9x5AAZVE9Gluk6Sek2u6QbowutdvkNPa4n/AETg7uHandHG28yP/FvydgkJnHJjdSpL0C9HDdL2w3q8D2i+1/zs0jxkx53xn71a+MBAyN+tMWrr9DYreJDh88x4IIiccTusnuHMpKSR9RJiOpWwDIWeATlUVkUUracOBld1Dq7ymPVohbTS1dbUspqWFvzkjzy7h2lR2ivLaSkmulfUbgGSWR3V4d/Z8FWmsdTV+pq7imL46OM/MQE8v3ndrj9yjbStBlAOblL2RZUlpm85M3P0tmotSe0yyQWaF1LSnYyu2lk8fs+Cj7Ys7nJPX3+K3RxgDlut7GZx1DrVArLQlqHlzzeui01NBRswRNuCTthH2cKG9J93FLRstFO756ccU37rM7D448h3qaXWrgtttnrao4ihYXEdp6gO8nAVG3auqLncp66pJMkry477DsA8BgK3cCWOa+qNTIOwz5O3sqrxdbJpqfoIz2nfA/tPXR9efky8iCd+KarIY8nkx31XfkrXdED1KhCByOcHn4K3+ju9i8WP1VQ8GspMMkyN3N+q78j4KY/UCxS26viHg76Ki+DbYIvo5D4t+wnd8Ix9FaDG+NwfESxwOQQcYTq5m2cc+QWl8YPMZXMYapzCCCujYmvGF2YUo0PquKOqipbo8ROziOfHC0nq4uzxV5UdT8wwzvGTtk/cuWpoQWkEfEqddHmtJKeJunLvLxQOOKSZzt4z/wCmT9nsPUrjZlsmYiOY57H+VULZ4eYxrqikHm37Cuq8W+G5UElLOwFrhsew9q5+15a6iz18tJUg4zljupzeoq4dIahbUVZs9Y/FQ0F0Dif6xo5jxH/nJa+lPTgvtgkfCwe1QNL49t3Drap+eIjzUTw/anV5g1x7JOfgVy1cqypoK+OtpJnQ1MLw+OQdRG66o6KNXway0lT3NjgKlo9XUR9bHjmuUNStcHPY4YIJBB/BPno46wdp3XjbfUSltDcj6p4J2bJ9U/kmMMuB9x0K6PxFYwtCzzMwdtmY8RuF2GDnsXqwYcjqWakVx5CEIQhCCcIXj+SEKsPSHvFVT6Sg07bHEXG+1DaOEDmGk+8fJTLQ9gptM6YobJSMa2Omha0463dZUEliGpvSCbxYfSaboQ7B5CaT8wPxVrfknU5wRNjHmfX+khGMTy/0WuZ0cUT5JHhjGgucXcgOvKoC7aidqnVctwaXGlafV0rTyEQPPHaTuVO/SC1CbNosW+B5bU3WX2cY5+rAzIfLDf4lTlnm9jtDpmkNkf7re5aCZtLA+d3ot4qV9dVMp2eZTpqi6vrpRQwvIp4D7wH13f5JuhjwM9eFqp2EZJ3zhLI24HJcrr6x9RKXuOq65BAyliEUYyCyYxbWj4IaDjbCatX3iOxWOasLgZnfNwM+088vgOfwTKlp5aydsEYvc43BN6qoZBG6WQ3AC9QXpYvvtNayy07z6mmdxT4OzpOofAHzPcoIAByWT3vklfJK8vlc4ue483E7krxelbEsuOy6NlOzYZnmdyuJ2lXPrql0z99PAbBCddKXmWxXqGtaSYj7kzftRnn5c/gmpeHkdsp7V00dXC6CQXtcLim1PM+CRsrDcQbwuiInxzQsmieHxvAcxw+s0jYrxzVB+iW/e0UclkqJD62AcdOT9ZnW0eH4FT1zcErzRbNmyWVWvpn7aHmNiu2WXaDK2mbKzfXwO4SKRnPZIp4+rG3LCdHtSWdmc7JtDLcVMRvSymvdWYIahkzmV1G5rmS9Zx9F3f2d66A0bfKfUmnaW5wYaZW8Msf2HtOHN8/uIXMkp9XJx9uxHaOxTv0dtQml1PW6amd81Wxe0U4J/tWD3gPFu/8ACun2XWdcohi/JuXpsuY2/Z/UK/Ez8H5jwO4UT9ITToseqXzQs4KataZWdgd1hUsJnw1QnicY5I5A5h7CCuvvSUsYuegJa6NmZaFwlz18J5rj+UkzP5H3imdU3C9dj4Mreu2cA/Mt7J+vhd19FeoGan0PbLsD85JCGyDseNj+ClWFz96Hl7M1nutie/8A2eUTRtPU13PHxXQAKkYX42ArkVvUXUbQlhGgOXkcwssIXmUJRRC9WMmzcnkN1kElurjHbal4zlsTyMf3SgC/JYKrzoQj9tk1NqKQZfcbvK1pPPgj90fgrLUI6D6OWj6Obc2oikinkMksjHtLXBznnOQVN3DZK1LsUh/7RaRC5oXMvpIXZ9f0m09qY4lltpGNLer1kh4z93B9yaP7KKEfRYwDCatfVMlb01ahkkdx8NxdGPBjQ0D/AApzh95xd2qD4knLKZkQ3Vn4Ppw+aSc7ZJZA3DQlTBstEI2SlmduQXN5XZq7vOayA2yeQVM9It8F6vbooHZoqTMcWDs4/Wd8cYHcFPOky/fJNldS078VdWCxhGxYz6zvyHxVOt5cvBdV/TqwcjaEo5hv2f4XOOMLVvIpIz4u+gvfDZCELrSoKEfchCEJRbK2e23CCvpSRNC8PG/PtHgRkK+bPcILra6e4UrsxTMDgOtp6we8HIXPruSnXRLffZbg6y1Dz6mqfmEn6suNx/EPvC5/x7YPXqTrUQ7bPkb+ytnClq9VqOgeey74O3urQck8o2Sp2O0FaJeS4bGbiusMKbaluyZrXdnae1zZ7sCQ2mrI3P72F3C7/CSn2cc1C9cAiLiGxcw/DCvHC0xE5j2cD/KgOLoRJQCTdhB98l2ZqqjZctNXCje3ibNTvbg9exXAldC6nrJ6cjDopHMPwOF3zpapdcdIWqskIL6qghmce3ijaT+K401tpHUQ1fd/ZbLcJoDWSGORkDiHDi5qdrWaEKQ/TquZE+WN7gAbjmpN6KtxNH0nCkLvcq6Z7CO0jcLrxowuN+hKxahtfShZKups9fBEJi173wODQHDG5XZDeQ8EpSX4Liovj3o32iJIyDe0aeBIWXwQvcoTlUlYk4Cx4snCydnqXHXpFXnUNn6V7lTUd6r6ane2OVkcU7mtHEOoZ7k7oqM1chYDdkm9ROIW4iL12IXNbzIHeV6TnzXAtg1jqVt9oHT6guT4hUx+sa6ocQ5vEMg78l3nSv46WKRo2cwEeSUrrPdRlocb71rTVInvuF1y4zv5P+trUBOcm7VPP++f1UgpeSbOkelkt/TPqGN7QOKvMzR+69rXD8U5UhHCqfxQD2D4K9cGEdDINwU5QrZNNHT08k8zxHFG0ve88mgDJK0wnkoP0sXz1dLHY6d/vSgSVBHU3PutPjz8u1Vex7KktStZTs3OZ5DcqYtivZQ0zpnbaeJ2UK1Vd5L5e5q6UEMd7sUZ+owfRH5/FNnWT2oH0UL0jS00dLE2GMXNaLguJTzPnkMjzeTmUIQhOEihCEIQjccl6x72SNkY8se0gtcObSDkELxeO5LDmhzcLkNcWm8K8tH3tt9sUVWcCob7lQ0dTxzPx5/FOj+Spvo+vhst7aJXH2OpxHMM7N+y/wCB+4lXG9wxsQR+K888WWGbKryGDsPzb9j0XZOG7TFfSjF+bcj/AD6pHU8j4qGa5wKdn91ymNSdioXrclzAxp34CPNK8MNJrGnkD+yccUuDbMcDuQPkH6XYPRqCOjvTgdzFrpx/8bU/kNG+Am3SlI+36YtVvf8ATpqKGJ3i1gH5Jk6X6x9B0cXieKR0cvqOGNzTghxIAwrk83XlUGmiMr2xjUkD3UtDWkZAGVkB14TXpeN8OnrfHIS57aaMOJOSTwhOvWgLDxhcW36L3CEIQtFi5cmemJbXU+u6C5cIDauj4SR1lhx+a60ccDKov0wrG6t0RRXmJmXW+ow8j7Dxj8cKSsiXo6pt++Sa1rMUJXKDXOa4OYcOacjxG4Xf3RndWXrQdmuLHcQlpGZPeBgrgDt7eey6x9EPUYrtGVNhlfxTW+YloJ34HbhTlvw4oQ8bFR9nSXSFvNRv0lbQ6i6RKK8tHzdxpGgnHOSM4P8AhLfJRuhflgwOrfKvfp506b3oeSopog+qtj/ao8DcsAw9o/h3/hCoOnGI2SDccjnt7VQbbpjUUQe3VuvkVduFqwU9e6F2jxl5hLLncoLVbJrhOfchbkDrcepviSqUr6qeurp62pfxyzPLnnv7PLClvSFW19dWR2+mpql9PTkuc5sTiHSEeHIA/eVFfk64YyKGq/ku/RWDgqzaez6YzyuHSP8AHQbD13UfxdWTVdT0MbTgb4HM7+yTISn5OuX7Pqz/AMl36L35NuWP93Vf8l36K7ddp++PcKn9Vm7p9klQlQttz/Z1X/Jd+iPky5/s6r/ku/RHXqfvj3COqzd0+ySoSr5Muf7Oq/5Lv0QbZc/2dV/yXfojr1P3x7hHVZu6fZJUJV8m3L9nVf8AJd+iDbbjj/d9WP8Aku/RHXafvj3COqzd0+ySEK1ujq+G5Wb2KZ5fVUbQ0k83x/VPw5HwCrP5OuP/ALCq/ku/RL9Pvutou8NbHRVRDTiRnqnYcw8xy+PiAq9xPRU1rUTmBwxtzbmNeXqp3h+rns+ra4tOE5OyOnP0VtVTscQ6uSarDaDqLpAs1qDCWzVkfrB/w2nicfJpS4OFQ0SMzwloduMbdn4KxPR008Z75cNTzx/N07PZaYkc3OwXkeAwP4iqBw3SGGN87h4D7Vw4vrWvdFSMP/o/SvMbAquuneczWS1WJh+culyhhA6y0Hid9wVjntVUXOX/AEj6eLfb2kSUtgpXVEx6hK/ZoPeFLv0u5qJspt03SnRgJ9hl83K0qVgjhYwbBrQAB4LesG/ks+pbqOcbzehCEIWF4Uxa7skeotJXKzSgH2qBzGk9TsbHzT8Fi5Za4scHDZYIBFxXzkuVHNb7hU0NQ3hmp5XRPHYQVOegHVTtK9IlJPLI4UlV/R6jfYA8nHwP4qV+lbox1m1YzUlHABRXPaXh2DZhzz4qmqHPtLQMhw71fY3sraW86EKuOBglu5L6LtdHPA1zcPje3O/JwK5/1dpIWLUNRbg0ihqsy0r8cmk/R8Wnbwwph6PmtBf9NstVdNmvoxwe8d3t6iFPNVWSnvtudTSYbKw8cMmN2O/Q8iqWWdBI6KQXg5HyU3ic8NljNzm5jzXM0sU1BVPpZgWvYd+w947kphkOB7x81Y990ZLeaN1PwNgu1NkRuccNd+4T2HmD1KsZo6ijq5KSsidBPE8sfG8YLT2Fc+tizn0spw5tOhXU7HtOO0oATk8aj78k4sfts4+a2CR32j5pBHJhb2SBVt7X81IOhA2SoPd9o+ayDj9o+aTh4WQeEgcfNJ9GOS3cR+0fNBcftHzWnj714ZEAu5o6MLYXn7R81re89bj5rB71pkk22KVYHndbtiHJZSSEfWPmkU8hcC0FzidsDdezzAZwrD6PNEyx0o1DeIeF/wBKjp3cxt/WOH4D4qas6hkqJAL/AOkjX1cNBCZH+g5lRal0/WOZBQxRF9fWuDeDH0SeQPZjmfBdAaUs1Pp+wUlppgCyBmHPxjjed3OPiSUg0np1tDO+51Lf6XK3hYDzib+p2ypL5ldFAbFE2Fn4tXK5HyVE7qiT8nfA5Jq1VeKWwWCtu1Y5rYqaIyHPXjkFAvR9ttVLarjq64sIrb7UGf3uYjGzR5YUc6XLnUa711b+jm0PL6RkgmusjT7oaD9Eq67bRwUNBDRUzQyGGMMY0dQAwkAcbr9gp2ZnUaERn85bifBo09zmloCEBCVUGhCEIQhB3QhCFGOkjStHrHSVZZKtrfnGExPIzwPHIj4rhi62etsOo6q03GIsqaeQsfkYzvs4eK+hh5c1TPpDdGTdS0Y1FaIWC7UrTxtAx65nYe9TNkV/QP6N/wCJ/dMK2m6QYm6hUjoG71dkulPcKJ2JI3DIz9IdYXW+i9R0mpLTHVU78Pxh7DzBXHVka6N5jkYWua4tLXbEdxHarL0Leauy1jaime4NJHGzOxCf2nSiYYhqE3pJjHkdF0dPSxTSMlIAkb143I7PBQTpR01RXcGZ8fqqxjfcna3fHY7tH4KU6Z1DR3qnY6N4ZNjdh5pyrqSCsp3Q1EYew7c8Ed+VVpImu7EovCmYZ5IXCSB1zua5Zr6Srts5hqGZA2DmnLSsYph25Vra56Prn71Rav6dF1xEgSj8nfiqfukVRb6p8FRBJBK0+9HI0tPkVBVnDHSdumdf4HVWqh4wZ/rrWYT3hofTZOAlGOazEo7UwC6RM2kDm9u2VtbdaUjaZnmq7NYlVGbnMPtf+yssVq0E4vZKPe7909+tHasTKO1M5ulMP7Zi1SXanP0HF57h+a1jsWqebhGfZbSWjQxC90rfcJ4knC1MMs8gjhY57nH6oTbT1L6h4a1uCTgN5kqzNEaFvlfwTS0poKY7+tnBaSO5vM/HAU/R8KvuxVDg0fKr1dxhTx9ikaXu56BZaA0xC2shq66MVNQHZjjA4msPUcfWP3K66Om4YWCVnvtPEM77pLYbFRWinDIWukkP0pX/AEj4dnwTqdhkfFWCOnhgbgiFwVSqKuoq39JO68/A8kYxyOFAel7WzdNWh1NQ4lu1QOCCNu5bnbiKc9daup9P0j44i2asc33IxyHeexRDo80fVXi8nV2pA6SVzuKnik+5xHZ2LV7iey1Sln0scTetVP4jQd48vJOHQhoqTT1skvF0HrLzcj62eR27mg7hqssADkscDGAcLP4pRrQ0XBR9XVyVczpX6n/rvReoQhZTZCEIQhCEIQhCxc0FpB3B6iskHkhCpbpa6Mmy1EmobDC0Sn3qiFoxxd471X1oa5ruFzS1zTgg7EFdUOAIIO4PUVAdbaCp66V1xtbWQ1HN7QPpqUpq8huCTRM5aa84mqE2KaWB7Hxvc12eYVjWPU8gY2OvYXtH9oNz5Ku6ammo5jDUxmN4PIqSW7kMHHZhZqGNkzRE4tyVj0tTT1TPWQSslb+6d1ou1ntd3g9TcrfTVceMBs0YdjwzyUYpqZpPrIpJIJTvxxuxv4cinSGrvlO0e7BXtHb7jz+SjXNLTknV4cM1Grx0M6Lr3F0NPV0JPVTznhHwdlR2foBtbj8zqK4M7PWQMd+GFZh1JFBgV9vr6R3fCXt8wsmaq0+84+U4mnseC0jzC2E0g3SZhYdlV0XQBQA/O6kq3D92mYD+JTxbOg7SNM5rqqoula4fbmDGn/pA/FWGy92iQZZcaZw7nrP5Wt5+hUteexoJWTUSndAgYNkgsGk9OWLBtNmpKZ4/tAzif/1HJ+9Ph7spGa8OHzVPI/vIwEkqa6owR7sfhukXOJzKcMiJyaE5yyxwjjke1reskqJai1PLg0tsaTI7YP8A07Vulpay4vwOItJ3JOydLVYqWjcJXMEk32j1eC0JJ0T2JsMHaf2jyUW0zo51TUi63sOkeXcbIn779rv0U9Y1jGhjBhoGAANgswNkY22C2a0BIVNVJUOvefIbBZIQhZTdCEIQhCEIQhCEIQhCEIQhB3XhC9QhCarvZaO5MzJGGSdTwN/iovU2Wstr8mIywD67N/MdSnp5LzhHelGSObotS0FQ63SMkZljgcbEZT1TEYAxt3rdXWW31TvWOg4Jep8Z4SkLrZd6b/YrjHM0cmVLP/sFkyYlgNuTzDjh25eKJKanl3kp4XntcwFM3t17p957F64jbippgc/AoOpOD3Z7JeYz1kU3EPMFJlbofcbPHVy07Le90kLuF5ZSZAPiErjreMYgt1Tjvj4AkulHvmludSYpo2S1XEwSNLTjhHUn/CwhNpjrZR/VshHe7JWyKhZnikcZD4YCWjAXuULbEVixjWN4WtAA7FlhCELVCEIQhCEIQhCEIQhCEIQhCEIQhCEIQhCEIQhCEIQhCEIQhGF5gIQhCMBeoQhCEIQhCEIQhCEIQhCEIQhCEIQhCEIQhC//2Q==" alt="Logo S&#233;curit&#233; Civile">
+      </div>
+    </div>
+
+    <div class="main-content">
+
+      <!-- ================= LECTURE (View Form) ================= -->
+      <section id="viewSection" style="display:none;">
+
+        <div id="d_vReference" class="reference"></div>
+
+        <div class="grid-container3">
+          <div class="form-group">
+            <label>Message N&#176;</label>
+            <span id="d_vNumero" class="code-block"></span>
+          </div>
+
+          <div class="form-group">
+            <label>Priorit&#233;</label>
+            <span id="d_Priority" class="code-block"></span>
+          </div>
+
+          <div class="form-group">
+            <label>Niveau de confidentialit&#233;</label>
+            <span id="d_vConfid" class="code-block"></span>
+          </div>
+        </div>
+
+        <div class="grid-container3">
+          <div class="form-group">
+            <label>Date &amp; Heure</label>
+            <span id="d_DateTime" class="code-block"></span>
+          </div>
+
+          <div class="form-group">
+            <label>Accus&#233; de r&#233;ception demand&#233;</label>
+            <span id="d_Dem_Rep" class="code-block"></span>
+          </div>
+
+          <div class="form-group">
+            <label>Indicatif de la station</label>
+            <span id="d_msgSender" class="code-block"></span>
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="grid-container3">
+          <div class="form-group">
+            <label>Indicatif de l'op&#233;rateur</label>
+            <span id="d_vOper" class="code-block"></span>
+          </div>
+          <div class="form-group">
+            <label>Autorit&#233; origine</label>
+            <span id="d_vOrigine" class="code-block"></span>
+          </div>
+        </div>
+
+        <div class="grid-container">
+          <div class="form-group">
+            <label>Indicatif(s) du/des destinataire(s)</label>
+            <span id="d_vTo" class="code-block"></span>
+          </div>
+        </div>
+
+        <div class="grid-container">
+          <div class="form-group">
+            <label>Autorit&#233;s destinataires</label>
+            <span id="d_vDestination" class="code-block"></span>
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="grid-container">
+          <div class="form-group">
+            <label>Sujet</label>
+            <span id="d_vSubject" class="code-block"></span>
+          </div>
+        </div>
+
+        <div class="grid-container">
+          <div class="form-group">
+            <label>Message de l'autorit&#233;</label>
+            <pre id="d_vMessage" class="code-block"></pre>
+          </div>
+        </div>
+
+
+        <div class="form-group button no-print">
+          <button id="printPageButton" type="button" onclick="window.print()">Imprimer</button>
+          &nbsp;
+          <button id="btnPreparerAR" type="button" class="secondaire">Pr&#233;parer l'accus&#233; de r&#233;ception</button>
+        </div>
+        <div id="avisAR" class="avis-ar no-print" style="display:none;"></div>
+
+      </section>
+
+      <!-- ================= SAISIE (Edit Form) ================= -->
+      <section id="formSection">
+        <form id="MessageCommandementForm" class="flmsg" onsubmit="return onSubmit();">
+
+        <!-- Champ masque alimente par la case a cocher -->
+        <input type="text" name="Dem_Rep" id="Dem_Rep" class="masque" tabindex="-1">
+
+        <!-- N&#176; Message / Priorite / Niveau de confidentialite -->
+        <div class="grid-container3">
+          <div class="form-group">
+            <label for="vLieu">N&#176; Message</label>
+            <div style="display: flex; gap: 2px; width: 200px;">
+              <select name="vLieu" id="vLieu" title="Origine de l'op&#233;ration" required style="width: 110px;">
+                <option hidden value=""></option>
+                <option value="RASEC">RASEC</option>
+                <option value="COGIC">COGIC</option>
+                <option value="COZ-Est">COZ-Est</option>
+                <option value="COZ-Idf">COZ-Idf</option>
+                <option value="COZ-Nord">COZ-Nord</option>
+                <option value="COZ-Ouest">COZ-Ouest</option>
+                <option value="COZ-Sud">COZ-Sud</option>
+                <option value="COZ-SE">COZ-SE</option>
+                <option value="COZ-SO">COZ-SO</option>
+                <option value="Outremer">Outremer</option>
+                <option value="COD">COD</option>
+              </select>
+              <input type="text" name="SeqNum" id="SeqNum" placeholder="13001"
+                title="Propos&#233; automatiquement &#224; partir du dernier num&#233;ro envoy&#233;, modifiable"
+                size="6" maxlength="6" style="color: red; width: 80px;" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Priorit&#233;</label>
+            <div class="radio-group">
+              <div class="red">
+                <input type="radio" name="Priority" id="prioImmediat" value="IMMEDIAT">
+                <span>Imm&#233;diat</span>
+              </div>
+              <div class="orange">
+                <input type="radio" name="Priority" id="prioUrgent" value="URGENT">
+                <span>Urgent</span>
+              </div>
+              <div class="green">
+                <input type="radio" name="Priority" id="prioRoutine" value="ROUTINE">
+                <span>Routine</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Niveau de confidentialit&#233;</label>
+            <div class="radio-group">
+              <div class="red">
+                <input type="radio" name="vConfid" id="confDR" value="DR">
+                <span title="Diffusion Restreinte">DR</span>
+              </div>
+              <div class="orange">
+                <input type="radio" name="vConfid" id="confNormal" value="Normal">
+                <span>Normal</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Date & Heure / Demande AR / Indicatif station -->
+        <div class="grid-container3">
+
+          <div class="form-group" style="display: flex; gap: 0.2rem; align-items: flex-end; margin-right: 5px;">
+            <div style="flex: 1;">
+              <label for="vDateHeure">Date &amp; Heure</label>
+              <input type="text" name="vDateHeure" id="vDateHeure" placeholder="Cliquer pour entrer l'heure"
+                title="Date et heure du message" required>
+            </div>
+            <div style="margin: 0;">
+              <button style="height: 32px;" id="BtnDate" type="button" onclick="SetDateToUTC()"
+                title="Cliquer pour basculer en heure UTC ou Locale">UTC / LOC</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div style="display: flex; align-items: center; height: 100%; padding-top: 10px; padding-left: 0px;">
+              <input type="checkbox" id="cbDemRep"
+                style="width: 20px; height: 20px; margin-right: 8px; margin-top: 0;">
+              <label for="cbDemRep" style="margin: 0; display: flex; align-items: center;">Demander un accus&#233; de
+                r&#233;ception</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="msgSender">Indicatif de la station</label>
+            <input type="text" name="msgSender" id="msgSender" style="color: red" size="8" maxlength="8"
+              placeholder="Ex : F8KFG" title="Indicatif de la station, m&#233;moris&#233; d'un message &#224; l'autre" required>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+
+        <!-- Indicatif operateur, Autorite origine -->
+        <div class="grid-container2">
+
+          <div class="form-group">
+            <label for="vOper">Indicatif de l'op&#233;rateur</label>
+            <input type="text" name="vOper" id="vOper" title="Indicatif de l'op&#233;rateur"
+              placeholder="Indicatif du radioamateur qui op&#232;re la station." size="10" maxlength="10" class="bg-yellow">
+          </div>
+
+          <div class="form-group">
+            <label for="vOrigine">Autorit&#233; origine</label>
+            <input type="text" name="vOrigine" id="vOrigine" title="Autorit&#233; origine"
+              placeholder="Ex: COZ-SUD, COGIC, Pr&#233;fecture, etc..." size="80" maxlength="80" class="bg-green">
+          </div>
+        </div>
+
+        <!-- Indicatifs destinataires, Autorites destinataires -->
+        <div class="grid-container">
+          <div class="form-group">
+            <label for="vTo">Indicatifs du/des destinataire(s)</label>
+            <input type="text" name="vTo" id="vTo" title="Indicatifs du/des destinataires"
+              placeholder="Les indicatifs doivent &#234;tre s&#233;par&#233;s par des ';'. Ex : F6PCT;F8KFG;F8KIA" size="100"
+              maxlength="100" class="bg-yellow">
+          </div>
+        </div>
+
+        <div class="grid-container">
+          <div class="form-group">
+            <label for="vDestination">Autorit&#233;s destinataires</label>
+            <input type="text" name="vDestination" id="vDestination" title="Autorit&#233;s destinataires"
+              placeholder="Ex: COGIC, COD, COZ, etc..." size="100" maxlength="100" class="bg-green">
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+
+        <div class="grid-container">
+          <div class="form-group">
+            <label for="vSubject">Sujet</label>
+            <textarea name="vSubject" id="vSubject" placeholder="Ex : Votre message 'Sujet du message' du 2025-03-20 15:00 UTC"
+              title="Sujet du message" rows="1" required onkeyup="AutoGrowTextArea(this)"></textarea>
+          </div>
+        </div>
+
+        <div class="grid-container">
+          <div class="form-group">
+            <label for="vMessage">Message de l'autorit&#233;</label>
+            <textarea name="vMessage" id="vMessage" placeholder="Ecrire ou copier ici le message de l'autorit&#233; &#224; transmettre"
+              title="Message de l'autorit&#233;" rows="12" required onkeyup="AutoGrowTextArea(this)"></textarea>
+          </div>
+        </div>
+
+        </form>
+      </section>
+
+    </div>
+
+    <div class="footer no-print">
+      <span id="version" class="footer-text">FNRASEC Message de commandement v25.10.1 - FLmsg</span>
+      <span id="brand" class="fnrasec-text">FNRASEC 2025</span>
+      <span id="projectLink" class="footer-text"><a href="https://github.com/jlzola/fnrasec-winlink-template"
+          target="_blank">FNRASEC Winlink Templates</a></span>
+    </div>
+
+  </div>
+
+  <!-- Panneau d'aide -->
+  <div class="help-panel no-print" id="help-panel">
+
+    <img id="close-btn" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48IS0tIUZvbnQgQXdlc29tZSBGcmVlIDYuNy4yIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlL2ZyZWUgQ29weXJpZ2h0IDIwMjUgRm9udGljb25zLCBJbmMuLS0+PHBhdGggZmlsbD0iIzMzMzMzMyIgZD0iTTY0IDMyQzI4LjcgMzIgMCA2MC43IDAgOTZMMCA0MTZjMCAzNS4zIDI4LjcgNjQgNjQgNjRsMzIwIDBjMzUuMyAwIDY0LTI4LjcgNjQtNjRsMC0zMjBjMC0zNS4zLTI4LjctNjQtNjQtNjRMNjQgMzJ6bTc5IDE0M2M5LjQtOS40IDI0LjYtOS40IDMzLjkgMGw0NyA0NyA0Ny00N2M5LjQtOS40IDI0LjYtOS40IDMzLjkgMHM5LjQgMjQuNiAwIDMzLjlsLTQ3IDQ3IDQ3IDQ3YzkuNCA5LjQgOS40IDI0LjYgMCAzMy45cy0yNC42IDkuNC0zMy45IDBsLTQ3LTQ3LTQ3IDQ3Yy05LjQgOS40LTI0LjYgOS40LTMzLjkgMHMtOS40LTI0LjYgMC0zMy45bDQ3LTQ3LTQ3LTQ3Yy05LjQtOS40LTkuNC0yNC42IDAtMzMuOXoiLz48L3N2Zz4=" alt="Fermer">
+
+    <div class="help-container">
+
+      <h2>Aide en Ligne</h2>
+
+      <h3>Aide du Formulaire FNRASEC Message de commandement</h3>
+
+      <p class="version">Version 25.10.1 - FLmsg</p>
+
+      <div class="help-content">
+
+      <p class="info">Ce formulaire permet d'envoyer un <b>message par FLmsg / fldigi</b>.</p>
+
+      <h4>Instructions g&#233;n&#233;rales :</h4>
+      <ul>
+        <li>Assurez-vous que les informations sont exactes et &#224; jour</li>
+        <li>V&#233;rifiez vos donn&#233;es avant de soumettre le formulaire</li>
+        <li>La <a href="#indicatifs">liste des indicatifs</a> par zone est disponible en bas de cette page.</li>
+        <li>Le bouton <b>Transmettre &#224; FLmsg</b>, en bas du formulaire, envoie les donn&#233;es vers FLmsg.
+          Enregistrez ensuite le message dans FLmsg (fichier .k2s), puis envoyez-le avec <b>AutoSend</b>.</li>
+      </ul>
+
+      <h4>Champs de l'ent&#234;te :</h4>
+      <ul>
+        <li><strong>N&#176; Message</strong><br>
+        <div>Le num&#233;ro du message est compos&#233; de 2 zones :
+          <ul>
+            <li>La premi&#232;re zone correspond &#224; l'origine de l'op&#233;ration : RASEC, COGIC, COZ-<i>Zone</i>, Outremer
+              ou COD ; ou AR pour l'accus&#233; de r&#233;ception.</li>
+            <li>La seconde zone est une s&#233;quence :
+              <p>
+                Pour le COGIC et les COZ, la s&#233;quence est un nombre sur 3 chiffres : 001, 002, ... 100, 101, etc..<br>
+                <br>
+                Pour les COD et les RASEC, la s&#233;quence un nombre sur 5 ou 6 chiffres (selon le d&#233;partement).
+                Elle est compos&#233;e du num&#233;ro du d&#233;partement de l'ADRASEC suivi de 3 chiffres.
+                Par exemple pour le 13, la s&#233;quence sera sur 5 chiffres et pour le 974, la s&#233;quence sera sur 6 chiffres :
+                13001, 13002, ... 974001, 974002, etc..<br>
+                <br>
+                FLmsg ne g&#232;re pas de s&#233;quence : saisissez le premier num&#233;ro, le formulaire proposera ensuite
+                le suivant (compteur conserv&#233; par le navigateur et partag&#233; par tous les formulaires FNRASEC).
+              </p>
+            </li>
+          </ul>
+          <p class="warning">Ces &#233;l&#233;ments sont importants pour la tra&#231;abilit&#233; des messages.</p>
+        </div>
+</li>
+        <li><strong>Niveau de priorit&#233;</strong><br>Le niveau de priorit&#233; du message.</li>
+        <li><strong>Niveau de confidentialit&#233;</strong><br>
+        Le niveau de confidentialit&#233; du message :<br>
+        <ul>
+          <li><strong>Normal</strong></li>
+          <li><strong>DR</strong> (Diffusion Restreinte) : <br>
+            <i>Le message est r&#233;serv&#233; uniquement aux destinataires concern&#233;s et ne doit pas &#234;tre partag&#233; en dehors de
+              ce cercle.</i>
+          </li>
+        </ul>
+</li>
+        <li><strong>Date &amp; Heure</strong><br>
+          La date de l'ouverture du formulaire.<br>
+          <i>Le bouton permet de changer le format de l'heure en UTC ou locale.</i></li>
+        <li><strong>Demande de l'accus&#233; de r&#233;ception</strong><br>
+          <i>A cocher si vous demandez un accus&#233; de r&#233;ception. FLmsg n'envoie aucun accus&#233; automatique :
+            le destinataire r&#233;pond avec le formulaire FNRASEC Accus&#233; de r&#233;ception.</i></li>
+        <li><strong>Indicatif de la station</strong><br>
+        L'indicatif de la station qui envoie le message.<br>
+        <i>FLmsg ne fournit pas l'indicatif au formulaire : saisissez-le une fois, il est ensuite m&#233;moris&#233;.</i>
+</li>
+        <li><strong>Indicatif de l'op&#233;rateur</strong><br>
+        <div>
+          L'indicatif du radioamateur qui op&#232;re la station.<br>
+          <i>Sur une op&#233;ration de longue dur&#233;e pendant laquelle plusieurs op&#233;rateurs se succ&#232;dent, chacun met son
+            indicatif.<br>
+            <strong>Ceci dans un objectif de tra&#231;abilit&#233;.</strong><br>
+            NB : Il y a des situations dans lesquelles l'indicatif de la station et l'indicatif de l'op&#233;rateur sont les
+            m&#234;mes</i>
+        </div>
+</li>
+        <li><strong>Autorit&#233; origine</strong><br>
+          L'autorit&#233; qui &#233;met le message. <br>
+          <i>Ex: COGIC, COD, COZ, etc...</i></li>
+        <li><strong>Indicatifs du/des destinataire(s)</strong><br>
+          Indicatif(s) du ou des destinataires du message.<br>
+          <i>Ce sont les indicatifs du ou des destinataires pr&#233;sents ou des organismes repr&#233;sent&#233;s (COD - COZ - COGIC)<br>
+            Les indicatifs doivent &#234;tre s&#233;par&#233;s par des ";"<br>
+            Ex : F6PCT;F8KFG;F8KIA</i></li>
+        <li><strong>Autorit&#233;s destinataires</strong><br>
+          La ou les autorit&#233;s qui re&#231;oivent le message. <br>
+          <i>Ex: COGIC, COD, COZ, etc...</i></li>
+      </ul>
+
+      <h4>Champs sp&#233;cifiques :</h4>
+      <ul>
+        <li><strong>Sujet</strong><br>
+          Le sujet du message.</li>
+        <li><strong>Message de l'autorit&#233;</strong><br>
+          C'est le corps du message de l'autorit&#233; &#224; transmettre.<br></li>
+      </ul>
+
+      <h4>Accus&#233; de r&#233;ception</h4>
+      <p>Pour r&#233;pondre &#224; un message re&#231;u, ouvrez-le dans FLmsg (View Form) et cliquez sur
+        <b>Pr&#233;parer l'accus&#233; de r&#233;ception</b>, puis ouvrez le formulaire FNRASEC Accus&#233; de r&#233;ception.</p>
+
+      <p class="warning">Tous les accents et caract&#232;res sp&#233;ciaux sont convertis en ASCII &#224; l'envoi : les modes
+        num&#233;riques de fldigi (MT63, Olivia...) ne transmettent pas toujours les caract&#232;res accentu&#233;s.</p>
+
+      <p class="info">Seules les valeurs des champs sont transmises. Le destinataire doit disposer du m&#234;me
+        formulaire dans le dossier CUSTOM de FLmsg.</p>
+
+      <p>&nbsp;</p>
+
+      <p class="note">Pour toute question suppl&#233;mentaire, veuillez contacter l'administrateur FNRASEC.</p>
+
+
+
+<h3 id="indicatifs" style="margin-top: 50px;">Liste des Indicatifs</h3>
+<p>Vous trouverez ci-dessous les indicatifs connus.</p>
+<p>Si vous souhaitez contribuer pour mettre &#224; jour cette liste contactez <a href="mailto:f8bnn@wanadoo.fr">Marc
+    F8BNN</a></p>
+<p>En vert ce sont les indicatifs recueillis dans la base ANFR. Ces derniers n'ont pas de licence VARA.</p>
+<p>Pour ceux d'entre vous qui constateraient que leur ADRASEC n'a pas d'indicatif, demandez &#224; votre pr&#233;sident de faire
+  la d&#233;marche "c'est gratuit" - Groupe Radio Club.</p>
+<p>&nbsp;</p>
+
+
+<!-- Zone Nord -->
+<div class="indicatifs-table">
+  <table>
+    <thead>
+      <tr>
+        <th colspan="2">Zone Nord</th>
+      </tr>
+      <tr>
+        <th>ADRASEC</th>
+        <th>CALL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>02</td>
+        <td class="highlight">F8KCS</td>
+      </tr>
+      <tr>
+        <td>59</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>60</td>
+        <td class="highlight">F4KMR</td>
+      </tr>
+      <tr>
+        <td>62</td>
+        <td class="highlight">F4KCP</td>
+      </tr>
+      <tr>
+        <td>80</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><strong>COZ Nord</strong></td>
+        <td class="pink">F8KIA</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Zone IDF -->
+<div class="indicatifs-table">
+  <table>
+    <thead>
+      <tr>
+        <th colspan="2">Zone IDF</th>
+      </tr>
+      <tr>
+        <th>ADRASEC</th>
+        <th>CALL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>75</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>77</td>
+        <td class="highlight">F8KSM</td>
+      </tr>
+      <tr>
+        <td>78</td>
+        <td class="green">F4KOG</td>
+      </tr>
+      <tr>
+        <td>91</td>
+        <td class="highlight">F8KRH</td>
+      </tr>
+      <tr>
+        <td>92</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>95</td>
+        <td class="highlight">F8KFB</td>
+      </tr>
+      <tr>
+        <td><strong>COGIC</strong></td>
+        <td class="pink">F6PCT</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Zone Est -->
+<div class="indicatifs-table">
+  <table>
+    <thead>
+      <tr>
+        <th colspan="2">Zone Est</th>
+      </tr>
+      <tr>
+        <th>ADRASEC</th>
+        <th>CALL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>08</td>
+        <td class="highlight">F4KML</td>
+      </tr>
+      <tr>
+        <td>10</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>21</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>25</td>
+        <td class="highlight">F4KMP</td>
+      </tr>
+      <tr>
+        <td>39</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>51</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>52</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>54</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>55</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>57</td>
+        <td class="highlight">F4KNN</td>
+      </tr>
+      <tr>
+        <td>58</td>
+        <td class="highlight">F4KLV</td>
+      </tr>
+      <tr>
+        <td>67</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>68</td>
+        <td class="highlight">F4KWW</td>
+      </tr>
+      <tr>
+        <td>71</td>
+        <td class="highlight">F4KND</td>
+      </tr>
+      <tr>
+        <td>88</td>
+        <td class="green">F4KNM</td>
+      </tr>
+      <tr>
+        <td>89</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>90/70</td>
+        <td class="highlight">F4KMQ</td>
+      </tr>
+      <tr>
+        <td><strong>COZ Est</strong></td>
+        <td class="pink">F8KHX</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Zone Sud-Est -->
+<div class="indicatifs-table">
+  <table>
+    <thead>
+      <tr>
+        <th colspan="2">Zone Sud-Est</th>
+      </tr>
+      <tr>
+        <th>ADRASEC</th>
+        <th>CALL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>01</td>
+        <td class="green">F4KJT</td>
+      </tr>
+      <tr>
+        <td>03</td>
+        <td class="highlight">F5KEK</td>
+      </tr>
+      <tr>
+        <td>03</td>
+        <td class="highlight">F4KNW</td>
+      </tr>
+      <tr>
+        <td>07</td>
+        <td class="highlight">F4KMT</td>
+      </tr>
+      <tr>
+        <td>15</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>26</td>
+        <td class="green">F4KMW</td>
+      </tr>
+      <tr>
+        <td>38</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>42</td>
+        <td class="highlight">F4KIV</td>
+      </tr>
+      <tr>
+        <td>43</td>
+        <td class="green">F4KMY</td>
+      </tr>
+      <tr>
+        <td>63</td>
+        <td class="green">F4KNO</td>
+      </tr>
+      <tr>
+        <td>69</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>73</td>
+        <td class="green">F4KKG</td>
+      </tr>
+      <tr>
+        <td>74</td>
+        <td class="highlight">F4KMU</td>
+      </tr>
+      <tr>
+        <td><strong>COZ Sud Est</strong></td>
+        <td class="pink">F4KIZ</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Zone Sud -->
+<div class="indicatifs-table">
+  <table>
+    <thead>
+      <tr>
+        <th colspan="2">Zone Sud</th>
+      </tr>
+      <tr>
+        <th>ADRASEC</th>
+        <th>CALL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>04</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>05</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>06</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>09</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>11</td>
+        <td class="green">F4KMX</td>
+      </tr>
+      <tr>
+        <td>12</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>13 (84)</td>
+        <td class="highlight">F5KIS</td>
+      </tr>
+      <tr>
+        <td>2A</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>2B</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>30</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>31</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>34</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>48</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>66</td>
+        <td class="green">F4KMS</td>
+      </tr>
+      <tr>
+        <td>81</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>82</td>
+        <td class="highlight">F4KKL</td>
+      </tr>
+      <tr>
+        <td>83</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>84 (13)</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><strong>COZ Sud</strong></td>
+        <td class="pink">F8KFG</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Zone Sud-Ouest -->
+<div class="indicatifs-table">
+  <table>
+    <thead>
+      <tr>
+        <th colspan="2">Zone Sud-Ouest</th>
+      </tr>
+      <tr>
+        <th>ADRASEC</th>
+        <th>CALL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>16</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>17</td>
+        <td class="green">F5KOB</td>
+      </tr>
+      <tr>
+        <td>19</td>
+        <td class="highlight">F6KPC</td>
+      </tr>
+      <tr>
+        <td>23 (87)</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>24</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>33</td>
+        <td class="highlight">F5KFC</td>
+      </tr>
+      <tr>
+        <td>40</td>
+        <td class="highlight">F4KNV</td>
+      </tr>
+      <tr>
+        <td>47</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>64</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>79</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>86</td>
+        <td class="highlight">F4KNG</td>
+      </tr>
+      <tr>
+        <td>87 (23)</td>
+        <td class="highlight">F6KTW</td>
+      </tr>
+      <tr>
+        <td><strong>COZ Sud Ouest</strong></td>
+        <td class="pink">F8KIE</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Zone Ouest -->
+<div class="indicatifs-table">
+  <table>
+    <thead>
+      <tr>
+        <th colspan="2">Zone Ouest</th>
+      </tr>
+      <tr>
+        <th>ADRASEC</th>
+        <th>CALL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>14(50)</td>
+        <td class="highlight">F8KGJ</td>
+      </tr>
+      <tr>
+        <td>18</td>
+        <td class="highlight">F4KON</td>
+      </tr>
+      <tr>
+        <td>22</td>
+        <td class="highlight">F8KFV</td>
+      </tr>
+      <tr>
+        <td>27</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>28</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>29</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>35</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>36(37)</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>37(36)</td>
+        <td class="green">F5KBH</td>
+      </tr>
+      <tr>
+        <td>41</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>44</td>
+        <td class="highlight">F4KNC</td>
+      </tr>
+      <tr>
+        <td>45</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>50 (14)</td>
+        <td class="highlight">F8KGJ</td>
+      </tr>
+      <tr>
+        <td>49</td>
+        <td class="highlight">F4KNA</td>
+      </tr>
+      <tr>
+        <td>45</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>53</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>56</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>61</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>72</td>
+        <td class="green">F4KLJ</td>
+      </tr>
+      <tr>
+        <td>76</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>85</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><strong>COZ Ouest</strong></td>
+        <td class="pink">F4KJC</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Zone Outremer -->
+<div class="indicatifs-table">
+  <table>
+    <thead>
+      <tr>
+        <th colspan="2">Zone Outremer</th>
+      </tr>
+      <tr>
+        <th>ADRASEC</th>
+        <th>CALL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>972</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>973</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>974</td>
+        <td class="highlight">FR4KT</td>
+      </tr>
+      <tr>
+        <td>955</td>
+        <td class="highlight">FK8PCT</td>
+      </tr>
+      <tr>
+        <td><strong>COZ 974</strong></td>
+        <td class="pink">FR4KT</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+
+</html>
